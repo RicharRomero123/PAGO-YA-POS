@@ -1,0 +1,17 @@
+<Application x:Class="PagoYa.Desktop.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--
+        App.xaml — Recursos globales de la aplicación.
+        Sin StartupUri: el arranque se controla por código en App.xaml.cs
+        (OnStartup) para poder construir el contenedor de DI antes de mostrar
+        la ventana. desktop-dev / ui-ux-designer agregarán estilos aquí.
+    -->
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/PagoYaTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

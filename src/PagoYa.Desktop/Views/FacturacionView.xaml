@@ -1,0 +1,101 @@
+<UserControl x:Class="PagoYa.Desktop.Views.FacturacionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:PagoYa.Desktop.Converters"
+             xmlns:vm="clr-namespace:PagoYa.Desktop.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance vm:FacturacionViewModel}"
+             Background="{StaticResource Brush.Fondo}">
+    <UserControl.Resources>
+        <conv:BoolAVisibilidadConverter x:Key="BoolAVis" />
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24" MaxWidth="860" HorizontalAlignment="Left">
+            <TextBlock Text="Facturación electrónica" Style="{StaticResource H1}" />
+            <TextBlock Text="Cada venta emite su comprobante automáticamente. Aquí revisas tu emisor y pruebas la emisión."
+                       Style="{StaticResource Muted}" Margin="0,4,0,16" TextWrapping="Wrap" />
+
+            <!-- Datos del emisor -->
+            <Border Style="{StaticResource Tarjeta}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Emisor SUNAT" Style="{StaticResource H2}" Margin="0,0,0,12" />
+                    <UniformGrid Columns="2">
+                        <StackPanel Margin="0,0,0,10">
+                            <TextBlock Text="RUC" Style="{StaticResource Muted}" />
+                            <TextBlock Text="{Binding Ruc}" Style="{StaticResource Body}" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,0,10">
+                            <TextBlock Text="Razón social" Style="{StaticResource Muted}" />
+                            <TextBlock Text="{Binding RazonSocial}" Style="{StaticResource Body}" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="Serie de boletas" Style="{StaticResource Muted}" />
+                            <TextBlock Text="{Binding SerieBoleta}" Style="{StaticResource Body}" FontWeight="SemiBold" />
+                        </StackPanel>
+                        <StackPanel>
+                            <TextBlock Text="Ambiente" Style="{StaticResource Muted}" />
+                            <TextBlock Text="{Binding Ambiente}" Style="{StaticResource Body}" FontWeight="SemiBold" />
+                        </StackPanel>
+                    </UniformGrid>
+
+                    <!-- Aviso: sin certificado (modo simulado) -->
+                    <Border Background="{StaticResource Brush.WarningTint}" CornerRadius="0" Padding="14,10" Margin="0,14,0,0"
+                            Visibility="{Binding CertificadoConfigurado, Converter={StaticResource BoolAVis}, ConverterParameter=Inv}">
+                        <TextBlock Style="{StaticResource Body}" Foreground="{StaticResource Brush.Warning}" TextWrapping="Wrap"
+                                   Text="Sin certificado digital (.pfx): los comprobantes se firman y guardan localmente en modo simulado. Conecta tu certificado y Clave SOL para enviarlos a SUNAT." />
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Probar emisión -->
+            <Border Style="{StaticResource Tarjeta}">
+                <StackPanel>
+                    <TextBlock Text="Probar emisión" Style="{StaticResource H2}" Margin="0,0,0,6" />
+                    <TextBlock Text="Emite un comprobante de prueba (S/ 10.00) para verificar el UBL 2.1, la firma y el CDR."
+                               Style="{StaticResource Muted}" FontSize="13" Margin="0,0,0,14" TextWrapping="Wrap" />
+
+                    <Button Content="Emitir comprobante de prueba" Style="{StaticResource BotonPrimario}"
+                            Command="{Binding EmitirPruebaCommand}"
+                            HorizontalAlignment="Left" MinWidth="240" />
+
+                    <TextBlock Text="{Binding MensajeEstado}" Style="{StaticResource Body}"
+                               Foreground="{StaticResource Brush.Primary}" TextWrapping="Wrap" Margin="0,12,0,0"
+                               Visibility="{Binding MensajeEstado, Converter={StaticResource BoolAVis}}" />
+
+                    <!-- Resultado del último comprobante -->
+                    <Border Background="{StaticResource Brush.SuccessTint}" CornerRadius="0" Padding="16,12" Margin="0,12,0,0"
+                            Visibility="{Binding HayResultado, Converter={StaticResource BoolAVis}}">
+                        <StackPanel>
+                            <TextBlock Text="Último comprobante emitido" Style="{StaticResource Muted}" Margin="0,0,0,8" />
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Margin="0,2">
+                                    <Run Text="N.°: " Foreground="#5B6B7F" /><Run Text="{Binding UltimoComprobante, Mode=OneWay}" FontWeight="Bold" />
+                                </TextBlock>
+                                <TextBlock Grid.Row="0" Grid.Column="1" Margin="0,2">
+                                    <Run Text="Estado SUNAT: " Foreground="#5B6B7F" /><Run Text="{Binding UltimoEstadoSunat, Mode=OneWay}" FontWeight="Bold" />
+                                </TextBlock>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,2">
+                                    <Run Text="CDR: " Foreground="#5B6B7F" /><Run Text="{Binding UltimoCdr, Mode=OneWay}" FontWeight="Bold" />
+                                </TextBlock>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,2">
+                                    <Run Text="Hash: " Foreground="#5B6B7F" /><Run Text="{Binding UltimoHash, Mode=OneWay}" FontFamily="Consolas" />
+                                </TextBlock>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

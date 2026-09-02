@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Tests del motor de facturación SUNAT. Verifican el pipeline offline completo:
+    UBL 2.1 bien formado + IGV desagregado + firma XML-DSig válida + CDR simulado
+    + poblado del Comprobante. Sin red ni credenciales (cert autofirmado de test).
+    TFM net8.0 heredado de ..\..\Directory.Build.props.
+  -->
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PagoYa.Invoicing.Sunat\PagoYa.Invoicing.Sunat.csproj" />
+  </ItemGroup>
+
+</Project>

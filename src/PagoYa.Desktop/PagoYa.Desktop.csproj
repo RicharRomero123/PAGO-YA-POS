@@ -1,0 +1,78 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    PagoYa.Desktop — Cliente WPF (composition root de la app).
+
+    Es el ÚNICO proyecto que referencia a todos los módulos (Core, Data,
+    Licensing, Invoicing.Sunat, Cloud) porque aquí se compone el grafo de
+    dependencias y se aplica el FEATURE-GATING por licencia (elige el motor
+    real o el Null Object según los flags del token). Trabaja aquí: desktop-dev.
+
+    TargetFramework se sobrescribe a net8.0-windows (WPF requiere el TFM Windows).
+  -->
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>PagoYa.Desktop</RootNamespace>
+    <AssemblyName>PagoYa.Desktop</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Ícono del ejecutable (lo que se ve al instalar/ejecutar el .exe y en la
+         barra de título/taskbar de las ventanas). Generado desde Assets\logo.png. -->
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <!--
+    Endurecimiento anti-ingeniería-inversa para Release (solo cliente).
+    - DebugType=none + DebugSymbols=false: NO se generan .pdb, que son el
+      mapa que usa un decompilador (dnSpy/ILSpy) para reconstruir el código.
+    - Deterministic + Optimize: binario reproducible y optimizado.
+    - La ofuscación real (renombrado + cifrado de strings) la hace Obfuscar
+      en un paso posterior; ver Obfuscar.xml y build/publica.ps1.
+    Nota: en Debug se conservan símbolos para poder depurar normalmente.
+  -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Deterministic>true</Deterministic>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <!-- WMI para el HWID (CPU ID + BaseBoard serial). Solo Windows. -->
+    <PackageReference Include="System.Management" Version="8.0.0" />
+    <!-- DPAPI (ProtectedData) para cifrar el token de licencia en reposo. Solo Windows. -->
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+    <!-- PrinterSettings (impresora predeterminada) para el ticket ESC/POS. Solo Windows. -->
+    <PackageReference Include="System.Drawing.Common" Version="8.0.8" />
+    <!-- Exportación a Excel real (.xlsx) de los reportes de ventas. -->
+    <PackageReference Include="ClosedXML" Version="0.104.2" />
+  </ItemGroup>
+
+  <!--
+    Recursos de marca: logo, wordmark y fuentes embebidas.
+    Los .ttf son OPCIONALES: el tema (PagoYaTheme.xaml) referencia las fuentes
+    con fallback a Segoe UI, así que el build NO depende de que existan.
+    Ver Assets/Fonts/README.md para saber qué .ttf descargar.
+  -->
+  <ItemGroup>
+    <Resource Include="Assets\logo.png" />
+    <Resource Include="Assets\tipografia.png" />
+    <Resource Include="Assets\Fonts\*.ttf" />
+    <!-- Iconografía del POS (sidebar, rubros, acciones). PNG embebidos como
+         Resource para que viajen dentro del binario y las URIs pack funcionen. -->
+    <Resource Include="Assets\Iconos\*.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PagoYa.Core\PagoYa.Core.csproj" />
+    <ProjectReference Include="..\PagoYa.Data\PagoYa.Data.csproj" />
+    <ProjectReference Include="..\PagoYa.Licensing\PagoYa.Licensing.csproj" />
+    <ProjectReference Include="..\PagoYa.Invoicing.Sunat\PagoYa.Invoicing.Sunat.csproj" />
+    <ProjectReference Include="..\PagoYa.Cloud\PagoYa.Cloud.csproj" />
+  </ItemGroup>
+
+</Project>

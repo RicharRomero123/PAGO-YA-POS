@@ -1,0 +1,427 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!--
+        PagoYaTheme.xaml — Sistema de diseño de PagoYa (tema global).
+        Se hace merge en App.xaml. Contiene:
+          - Colores y Brushes de marca.
+          - Tipografía (Baloo 2 marca / Nunito UI) con fallback a Segoe UI.
+          - Estilos de texto: H1, H2, Body, Muted, Precio, Total.
+          - Botones: primario (naranja), secundario, fantasma.
+          - TarjetaProducto (card), TextBox de búsqueda grande.
+          - Estilos de estado: Pagado, Pendiente, Error, y badges de tier.
+        Diseñado para POS de alto uso: touch targets >= 48px, escala grande,
+        contraste alto. ui-ux-designer.
+    -->
+
+    <!-- ============================================================ -->
+    <!-- 1. PALETA DE COLORES                                          -->
+    <!-- ============================================================ -->
+    <Color x:Key="Color.Primary">#F26522</Color>       <!-- Naranja PagoYa -->
+    <Color x:Key="Color.PrimaryPressed">#D14E12</Color>
+    <Color x:Key="Color.PrimaryTint">#FDE3D3</Color>
+    <Color x:Key="Color.Navy">#14253F</Color>          <!-- Texto / base -->
+    <Color x:Key="Color.Success">#16A34A</Color>
+    <Color x:Key="Color.Warning">#F59E0B</Color>
+    <Color x:Key="Color.Error">#DC2626</Color>
+    <Color x:Key="Color.Fondo">#F7F8FA</Color>
+    <Color x:Key="Color.Borde">#EDEFF3</Color>
+    <Color x:Key="Color.Muted">#6B7280</Color>
+    <Color x:Key="Color.Blanco">#FFFFFF</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="Brush.Primary"        Color="{StaticResource Color.Primary}" />
+    <SolidColorBrush x:Key="Brush.PrimaryPressed" Color="{StaticResource Color.PrimaryPressed}" />
+    <SolidColorBrush x:Key="Brush.PrimaryTint"    Color="{StaticResource Color.PrimaryTint}" />
+    <SolidColorBrush x:Key="Brush.Navy"           Color="{StaticResource Color.Navy}" />
+    <SolidColorBrush x:Key="Brush.Success"        Color="{StaticResource Color.Success}" />
+    <SolidColorBrush x:Key="Brush.Warning"        Color="{StaticResource Color.Warning}" />
+    <SolidColorBrush x:Key="Brush.Error"          Color="{StaticResource Color.Error}" />
+    <SolidColorBrush x:Key="Brush.Fondo"          Color="{StaticResource Color.Fondo}" />
+    <SolidColorBrush x:Key="Brush.Borde"          Color="{StaticResource Color.Borde}" />
+    <SolidColorBrush x:Key="Brush.Muted"          Color="{StaticResource Color.Muted}" />
+    <SolidColorBrush x:Key="Brush.Blanco"         Color="{StaticResource Color.Blanco}" />
+
+    <!-- Tints suaves de estado (fondos de badges/chips) -->
+    <SolidColorBrush x:Key="Brush.SuccessTint" Color="#DCFCE7" />
+    <SolidColorBrush x:Key="Brush.WarningTint" Color="#FEF3C7" />
+    <SolidColorBrush x:Key="Brush.ErrorTint"   Color="#FEE2E2" />
+
+    <!-- ============================================================ -->
+    <!-- 2. TIPOGRAFÍA (con fallback a Segoe UI si faltan los .ttf)    -->
+    <!-- ============================================================ -->
+    <FontFamily x:Key="FuenteMarca">./Assets/Fonts/#Baloo 2, Segoe UI</FontFamily>
+    <FontFamily x:Key="FuenteUI">./Assets/Fonts/#Nunito, Segoe UI</FontFamily>
+
+    <!-- ============================================================ -->
+    <!-- 3. RADIOS / ESPACIADO                                         -->
+    <!-- ============================================================ -->
+    <!-- Bordes cuadrados: estética POS profesional (sin esquinas redondeadas). -->
+    <sys:Double x:Key="Radio.Card">0</sys:Double>
+    <sys:Double x:Key="Radio.Boton">0</sys:Double>
+    <sys:Double x:Key="Radio.Input">0</sys:Double>
+    <CornerRadius x:Key="Corner.Card">0</CornerRadius>
+    <CornerRadius x:Key="Corner.Boton">0</CornerRadius>
+    <CornerRadius x:Key="Corner.Input">0</CornerRadius>
+    <CornerRadius x:Key="Corner.Chip">3</CornerRadius>
+
+    <!-- ============================================================ -->
+    <!-- 4. ESTILOS DE TEXTO                                           -->
+    <!-- ============================================================ -->
+
+    <!-- Base: todo el texto usa Nunito y Navy por defecto -->
+    <Style TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FuenteUI}" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Navy}" />
+        <Setter Property="TextOptions.TextFormattingMode" Value="Ideal" />
+    </Style>
+
+    <!-- H1: títulos de pantalla / marca -->
+    <Style x:Key="H1" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FuenteMarca}" />
+        <Setter Property="FontSize" Value="30" />
+        <Setter Property="FontWeight" Value="ExtraBold" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Navy}" />
+    </Style>
+
+    <!-- H2: subtítulos / secciones -->
+    <Style x:Key="H2" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FuenteMarca}" />
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Navy}" />
+    </Style>
+
+    <!-- Body: texto de interfaz (min 14, base 16-18) -->
+    <Style x:Key="Body" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FuenteUI}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Navy}" />
+    </Style>
+
+    <!-- Muted: texto secundario -->
+    <Style x:Key="Muted" TargetType="TextBlock" BasedOn="{StaticResource Body}">
+        <Setter Property="Foreground" Value="{StaticResource Brush.Muted}" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <!-- Precio: números tabulares para grilla (20-24px) -->
+    <Style x:Key="Precio" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FuenteUI}" />
+        <Setter Property="FontSize" Value="22" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Navy}" />
+        <Setter Property="TextOptions.TextFormattingMode" Value="Ideal" />
+    </Style>
+
+    <!-- Total: el número MÁS grande de la pantalla de cobro (48-64px) -->
+    <Style x:Key="Total" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FuenteMarca}" />
+        <Setter Property="FontSize" Value="56" />
+        <Setter Property="FontWeight" Value="ExtraBold" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Navy}" />
+    </Style>
+
+    <!-- ============================================================ -->
+    <!-- 5. BOTONES                                                    -->
+    <!-- ============================================================ -->
+
+    <!-- Botón primario NARANJA redondeado. Touch target >= 48px. -->
+    <Style x:Key="BotonPrimario" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource Brush.Primary}" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Blanco}" />
+        <Setter Property="FontFamily" Value="{StaticResource FuenteUI}" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="MinHeight" Value="52" />
+        <Setter Property="Padding" Value="28,12" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="borde"
+                            Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}"
+                            CornerRadius="{StaticResource Corner.Boton}">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="borde" Property="Background"
+                                    Value="{StaticResource Brush.PrimaryPressed}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="borde" Property="Background"
+                                    Value="{StaticResource Brush.PrimaryPressed}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="borde" Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Botón COBRAR gigante (acción primaria de la venta, 22-28px) -->
+    <Style x:Key="BotonCobrar" TargetType="Button" BasedOn="{StaticResource BotonPrimario}">
+        <Setter Property="FontFamily" Value="{StaticResource FuenteMarca}" />
+        <Setter Property="FontSize" Value="26" />
+        <Setter Property="FontWeight" Value="ExtraBold" />
+        <Setter Property="MinHeight" Value="80" />
+    </Style>
+
+    <!-- Botón secundario: contorno navy sobre blanco -->
+    <Style x:Key="BotonSecundario" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource Brush.Blanco}" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Navy}" />
+        <Setter Property="FontFamily" Value="{StaticResource FuenteUI}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="MinHeight" Value="52" />
+        <Setter Property="Padding" Value="22,11" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="borde"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{StaticResource Brush.Borde}"
+                            BorderThickness="1.5"
+                            Padding="{TemplateBinding Padding}"
+                            CornerRadius="{StaticResource Corner.Boton}">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="borde" Property="Background"
+                                    Value="{StaticResource Brush.Fondo}" />
+                            <Setter TargetName="borde" Property="BorderBrush"
+                                    Value="{StaticResource Brush.Primary}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="borde" Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Botón fantasma / icon-mini (para +/- de cantidad, quitar) -->
+    <Style x:Key="BotonMini" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource Brush.Fondo}" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Navy}" />
+        <Setter Property="FontFamily" Value="{StaticResource FuenteUI}" />
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="Width" Value="40" />
+        <Setter Property="Height" Value="40" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="borde"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{StaticResource Brush.Borde}"
+                            BorderThickness="1"
+                            CornerRadius="10">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="borde" Property="Background"
+                                    Value="{StaticResource Brush.PrimaryTint}" />
+                            <Setter TargetName="borde" Property="BorderBrush"
+                                    Value="{StaticResource Brush.Primary}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ============================================================ -->
+    <!-- 6. TARJETA DE PRODUCTO (card de la grilla)                    -->
+    <!-- ============================================================ -->
+    <Style x:Key="TarjetaProducto" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource Brush.Blanco}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="MinHeight" Value="112" />
+        <Setter Property="Margin" Value="6" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="borde"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{StaticResource Brush.Borde}"
+                            BorderThickness="1.5"
+                            CornerRadius="{StaticResource Corner.Card}"
+                            Padding="14">
+                        <ContentPresenter />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="borde" Property="BorderBrush"
+                                    Value="{StaticResource Brush.Primary}" />
+                            <Setter TargetName="borde" Property="Background"
+                                    Value="{StaticResource Brush.PrimaryTint}" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="borde" Property="BorderBrush"
+                                    Value="{StaticResource Brush.PrimaryPressed}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Tarjeta genérica (contenedor de paneles / métricas) -->
+    <Style x:Key="Tarjeta" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Brush.Blanco}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Brush.Borde}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource Corner.Card}" />
+        <Setter Property="Padding" Value="20" />
+    </Style>
+
+    <!-- ============================================================ -->
+    <!-- 7. TEXTBOX DE BÚSQUEDA GRANDE                                 -->
+    <!-- ============================================================ -->
+    <Style x:Key="BuscadorGrande" TargetType="TextBox">
+        <Setter Property="FontFamily" Value="{StaticResource FuenteUI}" />
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Navy}" />
+        <Setter Property="CaretBrush" Value="{StaticResource Brush.Primary}" />
+        <Setter Property="MinHeight" Value="56" />
+        <Setter Property="Padding" Value="16,10" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="borde"
+                            Background="{StaticResource Brush.Blanco}"
+                            BorderBrush="{StaticResource Brush.Borde}"
+                            BorderThickness="2"
+                            CornerRadius="{StaticResource Corner.Boton}">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      Margin="{TemplateBinding Padding}"
+                                      VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="borde" Property="BorderBrush"
+                                    Value="{StaticResource Brush.Primary}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- TextBox estándar de formulario -->
+    <Style x:Key="InputEstandar" TargetType="TextBox">
+        <Setter Property="FontFamily" Value="{StaticResource FuenteUI}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Navy}" />
+        <Setter Property="CaretBrush" Value="{StaticResource Brush.Primary}" />
+        <Setter Property="MinHeight" Value="48" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="borde"
+                            Background="{StaticResource Brush.Blanco}"
+                            BorderBrush="{StaticResource Brush.Borde}"
+                            BorderThickness="1.5"
+                            CornerRadius="{StaticResource Corner.Input}">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      Margin="{TemplateBinding Padding}"
+                                      VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="borde" Property="BorderBrush"
+                                    Value="{StaticResource Brush.Primary}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- PasswordBox estándar (espejo de InputEstandar) -->
+    <Style x:Key="PasswordEstandar" TargetType="PasswordBox">
+        <Setter Property="FontFamily" Value="{StaticResource FuenteUI}" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Navy}" />
+        <Setter Property="CaretBrush" Value="{StaticResource Brush.Primary}" />
+        <Setter Property="MinHeight" Value="48" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="PasswordBox">
+                    <Border x:Name="borde"
+                            Background="{StaticResource Brush.Blanco}"
+                            BorderBrush="{StaticResource Brush.Borde}"
+                            BorderThickness="1.5"
+                            CornerRadius="{StaticResource Corner.Input}">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      Margin="{TemplateBinding Padding}"
+                                      VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="borde" Property="BorderBrush"
+                                    Value="{StaticResource Brush.Primary}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ============================================================ -->
+    <!-- 8. CHIPS / BADGES DE ESTADO Y TIER                            -->
+    <!-- ============================================================ -->
+
+    <!-- Chip base -->
+    <Style x:Key="Chip" TargetType="Border">
+        <Setter Property="CornerRadius" Value="{StaticResource Corner.Chip}" />
+        <Setter Property="Padding" Value="12,5" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+
+    <!-- Texto dentro de un chip -->
+    <Style x:Key="ChipTexto" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FuenteUI}" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+
+    <!-- Chip Pagado (verde) -->
+    <Style x:Key="ChipPagado" TargetType="Border" BasedOn="{StaticResource Chip}">
+        <Setter Property="Background" Value="{StaticResource Brush.SuccessTint}" />
+    </Style>
+    <!-- Chip Pendiente (ámbar) -->
+    <Style x:Key="ChipPendiente" TargetType="Border" BasedOn="{StaticResource Chip}">
+        <Setter Property="Background" Value="{StaticResource Brush.WarningTint}" />
+    </Style>
+    <!-- Chip Error / Anulado (rojo) -->
+    <Style x:Key="ChipError" TargetType="Border" BasedOn="{StaticResource Chip}">
+        <Setter Property="Background" Value="{StaticResource Brush.ErrorTint}" />
+    </Style>
+    <!-- Badge de tier premium (naranja tint) -->
+    <Style x:Key="BadgeTier" TargetType="Border" BasedOn="{StaticResource Chip}">
+        <Setter Property="Background" Value="{StaticResource Brush.PrimaryTint}" />
+    </Style>
+
+</ResourceDictionary>

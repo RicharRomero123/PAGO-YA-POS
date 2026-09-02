@@ -1,0 +1,30 @@
+<Project>
+
+  <!--
+    Propiedades comunes a TODOS los proyectos de la solución PagoYa.
+    Centralizamos aquí el TargetFramework y las banderas de calidad para
+    mantener consistencia y evitar divergencias entre .csproj.
+
+    Nota de arquitectura (lead-architect):
+    - Toda la base apunta a net8.0 (LTS). El proyecto Desktop sobrescribe
+      TargetFramework a net8.0-windows porque WPF requiere el TFM de Windows.
+    - Nullable + ImplicitUsings habilitados en toda la solución.
+    - LangVersion fijado para C# idiomático moderno.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <!-- Metadatos de producto -->
+    <Product>PagoYa</Product>
+    <Company>Inklop</Company>
+    <Authors>Inklop / PagoYa</Authors>
+    <NeutralLanguage>es-PE</NeutralLanguage>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    PagoYa.Invoicing.Sunat — Módulo premium de facturación electrónica.
+    Implementa IInvoiceEngine (Core). FEATURE-GATED por el flag "invoicing".
+    Referencia SOLO a Core (nunca al revés). Trabaja aquí: sunat-facturacion.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>PagoYa.Invoicing.Sunat</RootNamespace>
+    <AssemblyName>PagoYa.Invoicing.Sunat</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- SignedXml (firma XML-DSig enveloped SHA-256) para el UBL SUNAT. -->
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="8.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PagoYa.Core\PagoYa.Core.csproj" />
+  </ItemGroup>
+
+</Project>

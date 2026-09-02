@@ -1,0 +1,369 @@
+<UserControl x:Class="PagoYa.Desktop.Views.RecepcionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:PagoYa.Desktop.Converters"
+             xmlns:vm="clr-namespace:PagoYa.Desktop.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance vm:RecepcionPosViewModel}"
+             Background="{StaticResource Brush.Fondo}">
+    <UserControl.Resources>
+        <conv:MonedaSolesConverter x:Key="Moneda" />
+        <conv:BoolAVisibilidadConverter x:Key="BoolAVis" />
+        <conv:BoolInversoConverter x:Key="BoolInv" />
+        <conv:EstadoHabitacionAColorConverter x:Key="EstadoColor" />
+        <conv:RutaAImagenConverter x:Key="Img" />
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="390" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ===== Mapa por piso ===== -->
+        <DockPanel Grid.Column="0" Margin="16,16,8,16">
+            <WrapPanel DockPanel.Dock="Top" Margin="4,0,0,10">
+                <Border Background="#E7F7EC" CornerRadius="8" Padding="10,5" Margin="0,0,8,0">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="11" Height="11" Fill="#16A34A" VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <TextBlock Text="Libres " FontWeight="SemiBold" Foreground="#12233F" />
+                        <TextBlock Text="{Binding Disponibles}" FontWeight="Bold" Foreground="#16A34A" />
+                    </StackPanel>
+                </Border>
+                <Border Background="#FDE7E7" CornerRadius="8" Padding="10,5">
+                    <StackPanel Orientation="Horizontal">
+                        <Ellipse Width="11" Height="11" Fill="#DC2626" VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <TextBlock Text="Ocupadas " FontWeight="SemiBold" Foreground="#12233F" />
+                        <TextBlock Text="{Binding Ocupadas}" FontWeight="Bold" Foreground="#DC2626" />
+                    </StackPanel>
+                </Border>
+            </WrapPanel>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding HabitacionesView}">
+                    <ItemsControl.GroupStyle>
+                        <GroupStyle>
+                            <GroupStyle.HeaderTemplate>
+                                <DataTemplate>
+                                    <Border Background="{StaticResource Brush.Navy}" CornerRadius="6" Padding="10,4"
+                                            HorizontalAlignment="Left" Margin="4,10,0,6">
+                                        <TextBlock Foreground="White" FontWeight="Bold" FontSize="13">
+                                            <Run Text="Piso" /><Run Text=" " /><Run Text="{Binding Name, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </GroupStyle.HeaderTemplate>
+                            <GroupStyle.Panel>
+                                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                            </GroupStyle.Panel>
+                        </GroupStyle>
+                    </ItemsControl.GroupStyle>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Width="150" Height="120" Margin="6" Cursor="Hand"
+                                    Command="{Binding DataContext.SeleccionarCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border CornerRadius="12" BorderThickness="2"
+                                                BorderBrush="{Binding Estado, Converter={StaticResource EstadoColor}}"
+                                                Background="{Binding Estado, Converter={StaticResource EstadoColor}, ConverterParameter=Tint}">
+                                            <DockPanel>
+                                                <Border DockPanel.Dock="Top" CornerRadius="10,10,0,0" Height="26"
+                                                        Background="{Binding Estado, Converter={StaticResource EstadoColor}}">
+                                                    <Grid Margin="9,0">
+                                                        <TextBlock Text="{Binding EstadoTexto}" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" />
+                                                        <TextBlock Text="{Binding TipoTexto}" Foreground="#F0FFFFFF" FontSize="10" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                                                    </Grid>
+                                                </Border>
+                                                <!-- Cuerpo: foto (si tiene) + franja inferior con número/huésped/precio -->
+                                                <Grid>
+                                                    <Image Source="{Binding ImagenRuta, Converter={StaticResource Img}}" Stretch="UniformToFill"
+                                                           Visibility="{Binding TieneImagen, Converter={StaticResource BoolAVis}}" />
+                                                    <Border VerticalAlignment="Bottom" Background="#D90C1A30" Padding="9,5">
+                                                        <StackPanel>
+                                                            <TextBlock Text="{Binding Numero}" FontSize="22" FontWeight="ExtraBold" Foreground="White" />
+                                                            <TextBlock Text="{Binding HuespedTexto}" FontSize="11" FontWeight="SemiBold" Foreground="#FFD3D3"
+                                                                       TextTrimming="CharacterEllipsis"
+                                                                       Visibility="{Binding HuespedTexto, Converter={StaticResource BoolAVis}}" />
+                                                            <TextBlock Text="{Binding PrecioTexto}" FontSize="10" Foreground="#CBD5E6"
+                                                                       TextTrimming="CharacterEllipsis" Margin="0,1,0,0" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </Grid>
+                                            </DockPanel>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </DockPanel>
+
+        <!-- ===== Panel de recepción ===== -->
+        <Border Grid.Column="1" Background="White" BorderBrush="{StaticResource Brush.Borde}" BorderThickness="1,0,0,0">
+            <Grid Margin="18,20">
+                <!-- Sin selección -->
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Visibility="{Binding HaySeleccion, Converter={StaticResource BoolAVis}, ConverterParameter=Inv}">
+                    <TextBlock Text="🛎️" FontSize="38" HorizontalAlignment="Center" Opacity="0.6" />
+                    <TextBlock Text="Elige una habitación del mapa para alquilar o cobrar" Style="{StaticResource Muted}"
+                               Margin="0,10,0,0" TextAlignment="Center" TextWrapping="Wrap" />
+                </StackPanel>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              Visibility="{Binding HaySeleccion, Converter={StaticResource BoolAVis}}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                            <Border Width="14" Height="14" CornerRadius="7" VerticalAlignment="Center" Margin="0,0,8,0"
+                                    Background="{Binding Seleccion.Estado, Converter={StaticResource EstadoColor}}" />
+                            <TextBlock Text="Habitación " Style="{StaticResource H2}" />
+                            <TextBlock Text="{Binding Seleccion.Numero}" Style="{StaticResource H2}" />
+                        </StackPanel>
+
+                        <!-- DISPONIBLE: alquilar -->
+                        <StackPanel Visibility="{Binding SelDisponible, Converter={StaticResource BoolAVis}}">
+                            <TextBlock Text="Alquilar / Registrar ingreso" Style="{StaticResource Muted}" FontWeight="Bold" Margin="0,0,0,8" />
+                            <TextBlock Text="{Binding CiTarifaTexto}" Foreground="{StaticResource Brush.Primary}" FontWeight="SemiBold" Margin="0,0,0,8" />
+                            <!-- Comodidades de la habitación -->
+                            <ItemsControl ItemsSource="{Binding Seleccion.ComodidadesLista}" Margin="0,0,0,10"
+                                          Visibility="{Binding Seleccion.TieneComodidades, Converter={StaticResource BoolAVis}}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{StaticResource Brush.PrimaryTint}" CornerRadius="9" Padding="7,3" Margin="0,2,4,0">
+                                            <TextBlock Text="{Binding}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource Brush.Primary}" />
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <RadioButton Content="Por noche" GroupName="modo" Margin="0,0,16,0" VerticalContentAlignment="Center"
+                                             IsChecked="{Binding CiPorHora, Converter={StaticResource BoolInv}}" />
+                                <RadioButton Content="Por hora (hostal)" GroupName="modo" VerticalContentAlignment="Center"
+                                             IsChecked="{Binding CiPorHora}" />
+                            </StackPanel>
+                            <TextBlock Text="Nombre del huésped" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                            <TextBox Style="{StaticResource InputEstandar}" Margin="0,0,0,10" Text="{Binding CiNombre, UpdateSourceTrigger=PropertyChanged}" />
+                            <TextBlock Text="Documento (DNI / CE / Pasaporte)" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                            <TextBox Style="{StaticResource InputEstandar}" Margin="0,0,0,10" Text="{Binding CiDocumento, UpdateSourceTrigger=PropertyChanged}" />
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="10" />
+                                    <ColumnDefinition Width="88" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="Teléfono (opcional)" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                                    <TextBox Style="{StaticResource InputEstandar}" Text="{Binding CiTelefono, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="Personas" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                                    <TextBox Style="{StaticResource InputEstandar}" Text="{Binding CiPersonas, UpdateSourceTrigger=PropertyChanged}" />
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- Productos adicionales al ingresar (van en la misma boleta) -->
+                            <Border Background="{StaticResource Brush.Fondo}" CornerRadius="10" Padding="12" Margin="0,2,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="Productos adicionales" Style="{StaticResource Muted}" FontWeight="Bold" />
+                                    <TextBlock Text="Ej. cervezas, preservativos, snacks… se cobran junto con la habitación."
+                                               Style="{StaticResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8" />
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="8" />
+                                            <ColumnDefinition Width="52" />
+                                            <ColumnDefinition Width="8" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ComboBox Grid.Column="0" MinHeight="42" VerticalContentAlignment="Center"
+                                                  ItemsSource="{Binding ProductosConsumo}" DisplayMemberPath="NombreConPrecio"
+                                                  SelectedItem="{Binding CiProducto}" />
+                                        <TextBox Grid.Column="2" Style="{StaticResource InputEstandar}" MinHeight="42"
+                                                 Text="{Binding CiCantidad, UpdateSourceTrigger=PropertyChanged}" />
+                                        <Button Grid.Column="4" Content="Agregar" Style="{StaticResource BotonSecundario}"
+                                                Command="{Binding AgregarAdicionalCheckinCommand}" />
+                                    </Grid>
+
+                                    <ItemsControl ItemsSource="{Binding AdicionalesCheckin}" Margin="0,6,0,0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,3">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+                                                        <Run Text="{Binding CantidadTexto, Mode=OneWay}" /><Run Text="× " /><Run Text="{Binding Descripcion, Mode=OneWay}" />
+                                                    </TextBlock>
+                                                    <TextBlock Grid.Column="1" VerticalAlignment="Center" FontWeight="SemiBold" Margin="8,0"
+                                                               Text="{Binding Importe, Converter={StaticResource Moneda}}" />
+                                                    <Button Grid.Column="2" Content="✕" Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                                            Foreground="{StaticResource Brush.Error}" FontWeight="Bold" Padding="4,0"
+                                                            Command="{Binding DataContext.QuitarAdicionalCheckinCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <Grid Margin="0,6,0,0" Visibility="{Binding TotalAdicionales, Converter={StaticResource BoolAVis}}">
+                                        <TextBlock Text="Subtotal productos" Style="{StaticResource Muted}" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding TotalAdicionalesTexto}" FontWeight="Bold"
+                                                   Foreground="{StaticResource Brush.Primary}" HorizontalAlignment="Right" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Button Content="Registrar ingreso" Style="{StaticResource BotonPrimario}" Height="48"
+                                    HorizontalAlignment="Stretch" Command="{Binding AlquilarCommand}" />
+                            <TextBlock Text="Habitación + productos se cobran en una sola boleta al check-out."
+                                       Style="{StaticResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="2,6,0,0" />
+                        </StackPanel>
+
+                        <!-- OCUPADA: consumos + check-out -->
+                        <StackPanel Visibility="{Binding SelOcupada, Converter={StaticResource BoolAVis}}">
+                            <Border Background="{StaticResource Brush.Fondo}" CornerRadius="10" Padding="12" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding OcupHuesped}" FontWeight="Bold" FontSize="16" Foreground="#12233F" />
+                                    <TextBlock Text="{Binding OcupDocumento}" Style="{StaticResource Muted}" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                        <TextBlock Text="Ingreso: " Style="{StaticResource Muted}" />
+                                        <TextBlock Text="{Binding OcupIngreso}" Style="{StaticResource Muted}" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Tiempo: " Style="{StaticResource Muted}" />
+                                        <TextBlock Text="{Binding OcupTiempo}" Style="{StaticResource Muted}" FontWeight="SemiBold" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding OcupModalidad}" Foreground="{StaticResource Brush.Primary}" FontWeight="SemiBold" Margin="0,4,0,0" />
+                                </StackPanel>
+                            </Border>
+
+                            <TextBlock Text="Consumos (minibar, lavandería…)" Style="{StaticResource Muted}" FontWeight="Bold" Margin="0,0,0,6" />
+                            <ItemsControl ItemsSource="{Binding ConsumosActuales}" Margin="0,0,0,6">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,3">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+                                                <Run Text="{Binding CantidadTexto, Mode=OneWay}" /><Run Text="× " /><Run Text="{Binding Descripcion, Mode=OneWay}" />
+                                            </TextBlock>
+                                            <TextBlock Grid.Column="1" VerticalAlignment="Center" FontWeight="SemiBold" Margin="8,0"
+                                                       Text="{Binding Importe, Converter={StaticResource Moneda}}" />
+                                            <Button Grid.Column="2" Content="✕" Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                                    Foreground="{StaticResource Brush.Error}" FontWeight="Bold" Padding="4,0"
+                                                    Command="{Binding DataContext.QuitarConsumoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <Grid Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="8" />
+                                    <ColumnDefinition Width="52" />
+                                    <ColumnDefinition Width="8" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <ComboBox Grid.Column="0" MinHeight="42" VerticalContentAlignment="Center"
+                                          ItemsSource="{Binding ProductosConsumo}" DisplayMemberPath="NombreConPrecio"
+                                          SelectedItem="{Binding ConsumoProducto}" />
+                                <TextBox Grid.Column="2" Style="{StaticResource InputEstandar}" MinHeight="42"
+                                         Text="{Binding ConsumoCantidad, UpdateSourceTrigger=PropertyChanged}" />
+                                <Button Grid.Column="4" Content="Cargar" Style="{StaticResource BotonSecundario}"
+                                        Command="{Binding AgregarConsumoCommand}" />
+                            </Grid>
+
+                            <Border Background="{StaticResource Brush.Fondo}" CornerRadius="8" Padding="10,8" Margin="0,12,0,0">
+                                <Grid>
+                                    <TextBlock Text="Total consumos" Style="{StaticResource Muted}" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding MontoConsumosTexto}" FontWeight="Bold" HorizontalAlignment="Right" />
+                                </Grid>
+                            </Border>
+
+                            <Button Content="Check-out y cobrar" Style="{StaticResource BotonPrimario}" Height="48"
+                                    HorizontalAlignment="Stretch" Margin="0,12,0,0" Command="{Binding IniciarCheckoutCommand}"
+                                    Visibility="{Binding CheckoutVisible, Converter={StaticResource BoolAVis}, ConverterParameter=Inv}" />
+
+                            <Border Background="#F8F4EE" CornerRadius="12" Padding="14" Margin="0,12,0,0"
+                                    Visibility="{Binding CheckoutVisible, Converter={StaticResource BoolAVis}}">
+                                <StackPanel>
+                                    <TextBlock Text="Cobro del check-out" FontWeight="Bold" FontSize="15" Foreground="#12233F" Margin="0,0,0,8" />
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="10" />
+                                            <ColumnDefinition Width="90" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="Modalidad" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                                            <TextBox Style="{StaticResource InputEstandar}" IsReadOnly="True" Text="{Binding UnidadCobroEtiqueta}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="Cantidad" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                                            <TextBox Style="{StaticResource InputEstandar}"
+                                                     Text="{Binding UnidadesCobro, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" />
+                                        </StackPanel>
+                                    </Grid>
+                                    <Grid Margin="0,2">
+                                        <TextBlock Text="Hospedaje" Style="{StaticResource Muted}" />
+                                        <TextBlock Text="{Binding MontoHospedajeTexto}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+                                    </Grid>
+                                    <Grid Margin="0,2">
+                                        <TextBlock Text="Consumos" Style="{StaticResource Muted}" />
+                                        <TextBlock Text="{Binding MontoConsumosTexto}" HorizontalAlignment="Right" FontWeight="SemiBold" />
+                                    </Grid>
+                                    <Border Height="1" Background="#E2D9CC" Margin="0,6" />
+                                    <Grid Margin="0,0,0,10">
+                                        <TextBlock Text="TOTAL" FontWeight="Bold" FontSize="16" Foreground="#12233F" />
+                                        <TextBlock Text="{Binding TotalCheckoutTexto}" HorizontalAlignment="Right"
+                                                   FontWeight="ExtraBold" FontSize="18" Foreground="{StaticResource Brush.Primary}" />
+                                    </Grid>
+                                    <TextBlock Text="Método de pago" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                                    <ComboBox MinHeight="42" VerticalContentAlignment="Center" Margin="0,0,0,10"
+                                              ItemsSource="{Binding MetodosPago}" SelectedIndex="{Binding MetodoPagoIndex}" />
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                        <Button Content="Cancelar" Style="{StaticResource BotonSecundario}" MinWidth="90" Margin="0,0,8,0"
+                                                Command="{Binding CancelarCheckoutCommand}" />
+                                        <Button Content="Cobrar y cerrar" Style="{StaticResource BotonPrimario}" MinWidth="140"
+                                                Command="{Binding ConfirmarCheckoutCommand}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- LIMPIEZA / MANTENIMIENTO -->
+                        <StackPanel Visibility="{Binding SelLiberable, Converter={StaticResource BoolAVis}}">
+                            <TextBlock Text="{Binding Seleccion.EstadoTexto}" Style="{StaticResource H2}" Margin="0,0,0,4" />
+                            <TextBlock Text="Cuando esté lista, márcala disponible para volver a alquilarla."
+                                       Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,0,0,12" />
+                            <Button Content="Marcar disponible" Style="{StaticResource BotonPrimario}" Height="46"
+                                    HorizontalAlignment="Stretch" Command="{Binding MarcarDisponibleCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Aviso de estado -->
+        <Border VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,410,16"
+                Background="{StaticResource Brush.Navy}" Padding="16,10"
+                Visibility="{Binding MensajeEstado, Converter={StaticResource BoolAVis}}">
+            <TextBlock Text="{Binding MensajeEstado}" Foreground="White" FontSize="13" />
+        </Border>
+    </Grid>
+</UserControl>

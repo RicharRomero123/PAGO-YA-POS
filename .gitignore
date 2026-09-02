@@ -1,0 +1,33 @@
+# Build outputs
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+
+# .NET / VS
+.vs/
+*.user
+*.suo
+
+# Bases de datos locales generadas
+*.db
+*.db-shm
+*.db-wal
+
+# SEGURIDAD: nunca versionar secretos de licenciamiento/facturación
+# (clave privada RSA, certificados .pfx, claves SOL)
+*.pfx
+*.p12
+*_private*.pem
+*_private_dev.pem
+pagoya_private_dev.pem
+licencia.token
+
+# SEGURIDAD server: la clave privada de dev vive en appsettings.Development.json
+# y en server/PagoYa.Api/keys/ — NUNCA versionar.
+appsettings.Development.json
+server/**/keys/
+server/**/*.db
+server/**/*.db-shm
+server/**/*.db-wal

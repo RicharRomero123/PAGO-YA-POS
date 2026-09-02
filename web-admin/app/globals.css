@@ -1,0 +1,426 @@
+/* PagoYa · Panel de licencias (Next.js) — identidad de marca naranja #F26522. */
+:root {
+  --naranja: #f26522;
+  --naranja-osc: #d8500f;
+  --naranja-tint: #fff1ea;
+  --tinta: #1f2937;
+  --gris: #6b7280;
+  --borde: #e5e7eb;
+  --fondo: #f7f8fa;
+  --blanco: #ffffff;
+  --ok: #16a34a;
+  --ok-tint: #dcfce7;
+  --warn: #d97706;
+  --warn-tint: #fef3c7;
+  --err: #dc2626;
+  --err-tint: #fee2e2;
+  --azul: #0369a1;
+  --azul-tint: #e0f2fe;
+  --sombra: 0 6px 24px rgba(17, 24, 39, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+body {
+  font-family: "Nunito", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--fondo);
+  color: var(--tinta);
+  -webkit-font-smoothing: antialiased;
+}
+
+.muted {
+  color: var(--gris);
+  font-size: 0.9rem;
+}
+.hidden {
+  display: none !important;
+}
+
+/* ---------- Marca ---------- */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+.brand p {
+  margin: 0;
+  color: var(--gris);
+  font-size: 0.85rem;
+}
+.brand-dot {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--naranja);
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.4rem;
+  box-shadow: 0 4px 12px rgba(242, 101, 34, 0.4);
+}
+.brand.small .brand-dot {
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+  border-radius: 9px;
+}
+
+/* ---------- Botones ---------- */
+.btn {
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 10px 18px;
+  border-radius: 10px;
+  transition: transform 0.05s ease, background 0.15s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.btn-primary {
+  background: var(--naranja);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(242, 101, 34, 0.35);
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--naranja-osc);
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--tinta);
+  border: 1.5px solid var(--borde);
+}
+.btn-ghost:hover {
+  border-color: var(--naranja);
+  color: var(--naranja);
+}
+.btn-block {
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px;
+}
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+}
+.btn-danger {
+  color: var(--err);
+  border-color: var(--err-tint);
+}
+.btn-danger:hover {
+  background: var(--err-tint);
+  border-color: var(--err);
+}
+
+/* ---------- Acceso ---------- */
+.auth {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 20px;
+}
+.auth-card {
+  background: var(--blanco);
+  border-radius: 20px;
+  box-shadow: var(--sombra);
+  padding: 34px;
+  width: 100%;
+  max-width: 400px;
+}
+.auth-card h2 {
+  margin: 22px 0 4px;
+}
+.pie {
+  color: var(--gris);
+  font-size: 0.8rem;
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 12px 0 5px;
+}
+input,
+select {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1.5px solid var(--borde);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  background: #fff;
+  transition: border-color 0.15s ease;
+}
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--naranja);
+}
+
+.error-msg {
+  background: var(--err-tint);
+  color: var(--err);
+  padding: 9px 12px;
+  border-radius: 9px;
+  font-size: 0.85rem;
+  margin: 12px 0 0;
+}
+
+/* ---------- Panel ---------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--blanco);
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--borde);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.contenido {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.toolbar-filtros {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.toolbar-filtros input {
+  width: 280px;
+}
+.toolbar-filtros select,
+.toolbar-filtros input {
+  padding: 9px 12px;
+}
+.toolbar-filtros select {
+  width: auto;
+}
+
+/* ---------- Tabla ---------- */
+.tabla-wrap {
+  background: var(--blanco);
+  border-radius: 14px;
+  box-shadow: var(--sombra);
+  overflow: hidden;
+}
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tabla th {
+  text-align: left;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gris);
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--borde);
+  background: #fcfcfd;
+}
+.tabla td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--borde);
+  font-size: 0.92rem;
+  vertical-align: middle;
+}
+.tabla tr:last-child td {
+  border-bottom: none;
+}
+.tabla tbody tr:hover td {
+  background: var(--naranja-tint);
+}
+.cliente-nombre {
+  font-weight: 700;
+}
+.cliente-ruc {
+  color: var(--gris);
+  font-size: 0.8rem;
+}
+.clave-code {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.82rem;
+  background: var(--fondo);
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+}
+.clave-code:hover {
+  background: var(--naranja-tint);
+}
+.hwid-si {
+  color: var(--ok);
+  font-weight: 700;
+}
+.hwid-no {
+  color: var(--gris);
+}
+.vacia {
+  text-align: center;
+  color: var(--gris);
+  padding: 40px;
+}
+
+/* ---------- Badges ---------- */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.badge-plan {
+  background: var(--naranja-tint);
+  color: var(--naranja-osc);
+}
+.badge-Emitida {
+  background: var(--azul-tint);
+  color: var(--azul);
+}
+.badge-Activa {
+  background: var(--ok-tint);
+  color: var(--ok);
+}
+.badge-Suspendida,
+.badge-Expirada {
+  background: var(--warn-tint);
+  color: var(--warn);
+}
+.badge-Revocada {
+  background: var(--err-tint);
+  color: var(--err);
+}
+
+/* ---------- Modal ---------- */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.5);
+  display: grid;
+  place-items: center;
+  z-index: 20;
+  padding: 20px;
+}
+.modal-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 26px;
+  width: 100%;
+  max-width: 560px;
+  box-shadow: var(--sombra);
+  max-height: 92vh;
+  overflow: auto;
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.modal-head h3 {
+  margin: 0;
+}
+.btn-cerrar {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--gris);
+}
+.modal-acciones {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 520px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+  .toolbar-filtros input {
+    width: 100%;
+  }
+}
+
+.clave-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--naranja-tint);
+  border: 1.5px dashed var(--naranja);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+}
+.clave-box code {
+  flex: 1;
+  font-family: Consolas, monospace;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--naranja-osc);
+  letter-spacing: 0.05em;
+}
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--tinta);
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  z-index: 40;
+  box-shadow: var(--sombra);
+}

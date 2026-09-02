@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Tests del motor de sincronización Cloud. Prueban:
+    - Orquestación de CloudSyncService (push idempotente, dead-letter, pull LWW)
+      con outbox y transporte simulados.
+    - OutboxStore real sobre SQLite (BD temporal) + consolidación multi-caja
+      extremo a extremo con el transporte en memoria.
+    TFM net8.0 heredado de ..\..\Directory.Build.props.
+  -->
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PagoYa.Cloud\PagoYa.Cloud.csproj" />
+    <ProjectReference Include="..\..\src\PagoYa.Data\PagoYa.Data.csproj" />
+  </ItemGroup>
+
+</Project>

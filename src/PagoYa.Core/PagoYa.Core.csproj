@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    PagoYa.Core — El corazón del dominio.
+
+    REGLA DE ARQUITECTURA CRÍTICA:
+      Este proyecto NO referencia ningún módulo premium (Invoicing.Sunat,
+      Cloud, Licensing implementación, Data). Solo define ENTIDADES, ENUMS
+      y CONTRATOS (interfaces). Los módulos premium referencian a Core,
+      nunca al revés. Esto permite feature-gating con el patrón Null Object
+      sin acoplar el núcleo a implementaciones caras.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>PagoYa.Core</RootNamespace>
+    <AssemblyName>PagoYa.Core</AssemblyName>
+  </PropertyGroup>
+
+</Project>

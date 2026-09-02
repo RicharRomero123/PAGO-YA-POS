@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    PagoYa.Data — Persistencia local en SQLite.
+
+    Decisión de arquitectura (ver docs/ARQUITECTURA.md):
+      Usamos Microsoft.Data.Sqlite + Dapper (micro-ORM) en lugar de EF Core.
+      Motivo: el POS necesita arranque rápido, footprint pequeño y consultas
+      simples y predecibles (equipo pequeño, soporte por WhatsApp). Dapper da
+      SQL explícito sin la sobrecarga de migraciones/change-tracking de EF.
+      Trade-off: escribimos el mapeo a mano, pero ganamos control y velocidad.
+
+    El script de esquema (Esquema/esquema.sql) se embebe como recurso para
+    crear/actualizar la BD en el primer arranque.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>PagoYa.Data</RootNamespace>
+    <AssemblyName>PagoYa.Data</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.8" />
+    <PackageReference Include="Dapper" Version="2.1.35" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PagoYa.Core\PagoYa.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- El script SQL viaja embebido en el ensamblado. -->
+    <EmbeddedResource Include="Esquema\esquema.sql" />
+  </ItemGroup>
+
+</Project>

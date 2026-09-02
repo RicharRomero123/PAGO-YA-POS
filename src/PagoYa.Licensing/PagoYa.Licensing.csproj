@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    PagoYa.Licensing — Validación del token de licencia en el CLIENTE.
+
+    Este módulo SOLO VALIDA: verifica la firma RSA-2048 del token contra la
+    clave pública embebida y comprueba HWID/expiración. NUNCA emite tokens
+    (eso vive en licensing-backend con la clave privada, fuera de este repo).
+
+    Referencia a Core para implementar ILicenseService y EstadoLicencia.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>PagoYa.Licensing</RootNamespace>
+    <AssemblyName>PagoYa.Licensing</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PagoYa.Core\PagoYa.Core.csproj" />
+  </ItemGroup>
+
+</Project>

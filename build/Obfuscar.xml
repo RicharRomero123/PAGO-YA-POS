@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Config de Obfuscar (ofuscador .NET gratuito y open source) para el CLIENTE PagoYa.
+
+  ESTRATEGIA CONSERVADORA, COMPATIBLE CON WPF:
+   - KeepPublicApi=true  -> NO renombra miembros PÚBLICOS. Es imprescindible:
+     WPF resuelve los bindings de XAML por NOMBRE en tiempo de ejecución, así que
+     renombrar propiedades públicas de los ViewModels rompería la interfaz.
+     También mantiene válidas las referencias entre ensamblados.
+   - HidePrivateApi=true -> renombra miembros privados/internos (seguro, no lo ve XAML).
+   - HideStrings=true    -> CIFRA las cadenas del binario: oculta la clave pública
+     embebida, las URLs del backend y los nombres de los claims del token de licencia.
+   - SuppressIldasm=true -> añade el atributo que desalienta ildasm.exe.
+
+  Esto sube el listón de forma real SIN romper la app. Para protección más fuerte
+  (renombrado público seguro para WPF, control-flow, anti-tamper) usar en PRODUCCIÓN
+  un tool WPF-aware como .NET Reactor o Eazfuscator.NET. Ver docs/SEGURIDAD.md.
+
+  USO:
+    dotnet tool install -g Obfuscar.GlobalTool
+    build\publica.ps1              # publica en Release y ofusca automáticamente
+
+  Rutas relativas a la RAÍZ del repo (el script publica.ps1 se ejecuta desde ahí).
+-->
+<Obfuscator>
+  <Var name="InPath"        value="artifacts\publish" />
+  <Var name="OutPath"       value="artifacts\publish-obfuscated" />
+
+  <Var name="KeepPublicApi"    value="true" />
+  <Var name="HidePrivateApi"   value="true" />
+  <Var name="HideStrings"      value="true" />
+  <Var name="RenameProperties" value="false" />
+  <Var name="RenameEvents"     value="false" />
+  <Var name="RenameFields"     value="true" />
+  <Var name="UseUnicodeNames"  value="true" />
+  <Var name="OptimizeMethods"  value="true" />
+  <Var name="SuppressIldasm"   value="true" />
+
+  <!-- Solo nuestros ensamblados; NUNCA los del framework/NuGet. -->
+  <Module file="artifacts\publish\PagoYa.Licensing.dll" />
+  <Module file="artifacts\publish\PagoYa.Core.dll" />
+  <Module file="artifacts\publish\PagoYa.Data.dll" />
+  <Module file="artifacts\publish\PagoYa.Invoicing.Sunat.dll" />
+  <Module file="artifacts\publish\PagoYa.Cloud.dll" />
+  <Module file="artifacts\publish\PagoYa.Desktop.dll" />
+</Obfuscator>

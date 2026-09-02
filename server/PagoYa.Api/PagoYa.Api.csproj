@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    Microservicio de licenciamiento de PagoYa (licensing-backend).
+    NUNCA se entrega al cliente: vive en la carpeta hermana server\, fuera de src\.
+    La clave privada RSA vive SOLO aquí (fuera de git); el cliente solo lleva la pública.
+
+    TargetFramework/Nullable/ImplicitUsings los hereda de ..\..\Directory.Build.props (net8.0).
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>PagoYa.Api</RootNamespace>
+    <AssemblyName>PagoYa.Api</AssemblyName>
+    <UserSecretsId>pagoya-licensing-backend</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+</Project>

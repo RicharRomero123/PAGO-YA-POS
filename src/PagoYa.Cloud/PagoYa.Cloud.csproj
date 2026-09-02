@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    PagoYa.Cloud — Módulo premium de respaldo/sincronización en la nube.
+    Implementa ISyncService (Core). FEATURE-GATED por el flag "cloud_sync".
+    Referencia SOLO a Core. Trabaja aquí: licensing-backend / cloud-dev.
+  -->
+
+  <PropertyGroup>
+    <RootNamespace>PagoYa.Cloud</RootNamespace>
+    <AssemblyName>PagoYa.Cloud</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PagoYa.Core\PagoYa.Core.csproj" />
+  </ItemGroup>
+
+</Project>

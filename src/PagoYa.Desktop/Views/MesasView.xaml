@@ -1,0 +1,483 @@
+<UserControl x:Class="PagoYa.Desktop.Views.MesasView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:PagoYa.Desktop.Converters"
+             xmlns:vm="clr-namespace:PagoYa.Desktop.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance vm:MesasViewModel}"
+             Background="{StaticResource Brush.Fondo}">
+    <UserControl.Resources>
+        <conv:MonedaSolesConverter x:Key="Moneda" />
+        <conv:BoolAVisibilidadConverter x:Key="BoolAVis" />
+        <conv:EstadoMesaAColorConverter x:Key="EstadoColor" />
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="420" />
+        </Grid.ColumnDefinitions>
+
+        <!-- ===== Mapa del salón por zona ===== -->
+        <DockPanel Grid.Column="0" Margin="16,16,8,16">
+            <!-- Encabezado + resumen + acción -->
+            <Grid DockPanel.Dock="Top" Margin="4,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Width="30" Height="30" Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality"
+                           Source="pack://application:,,,/Assets/Iconos/ico-restaurante.png" />
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Mesas" Style="{StaticResource H2}" />
+                        <TextBlock Text="Toca una mesa para abrir su cuenta, enviar a cocina o cobrar." Style="{StaticResource Muted}" />
+                    </StackPanel>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="#E7F7EC" CornerRadius="8" Padding="10,5" Margin="0,0,8,0" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="11" Height="11" Fill="#16A34A" VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <TextBlock Text="Libres " FontWeight="SemiBold" Foreground="#12233F" />
+                            <TextBlock Text="{Binding Libres}" FontWeight="Bold" Foreground="#16A34A" />
+                        </StackPanel>
+                    </Border>
+                    <Border Background="#FFECE1" CornerRadius="8" Padding="10,5" Margin="0,0,10,0" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="11" Height="11" Fill="#F26522" VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <TextBlock Text="Ocupadas " FontWeight="SemiBold" Foreground="#12233F" />
+                            <TextBlock Text="{Binding Ocupadas}" FontWeight="Bold" Foreground="#F26522" />
+                        </StackPanel>
+                    </Border>
+                    <Button Content="+ Nueva mesa" Style="{StaticResource BotonSecundario}" MinHeight="42"
+                            VerticalAlignment="Center" Command="{Binding NuevaMesaCommand}" />
+                </StackPanel>
+            </Grid>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <Grid>
+                    <!-- Estado vacío -->
+                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="0,60"
+                                Visibility="{Binding TotalMesas, Converter={StaticResource BoolAVis}, ConverterParameter=Inv}">
+                        <Image Width="56" Height="56" Opacity="0.5" HorizontalAlignment="Center"
+                               Source="pack://application:,,,/Assets/Iconos/ico-restaurante.png" />
+                        <TextBlock Text="Aún no tienes mesas registradas." Style="{StaticResource Muted}"
+                                   Margin="0,12,0,0" HorizontalAlignment="Center" />
+                    </StackPanel>
+
+                    <ItemsControl ItemsSource="{Binding MesasView}">
+                        <ItemsControl.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.HeaderTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{StaticResource Brush.Navy}" CornerRadius="6" Padding="10,4"
+                                                HorizontalAlignment="Left" Margin="4,10,0,6">
+                                            <TextBlock Text="{Binding Name, Mode=OneWay}" Foreground="White" FontWeight="Bold" FontSize="13" />
+                                        </Border>
+                                    </DataTemplate>
+                                </GroupStyle.HeaderTemplate>
+                                <GroupStyle.Panel>
+                                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                </GroupStyle.Panel>
+                            </GroupStyle>
+                        </ItemsControl.GroupStyle>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Width="150" Height="120" Margin="6" Cursor="Hand"
+                                        Command="{Binding DataContext.SeleccionarMesaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border CornerRadius="12" BorderThickness="2"
+                                                    BorderBrush="{Binding Estado, Converter={StaticResource EstadoColor}}"
+                                                    Background="{Binding Estado, Converter={StaticResource EstadoColor}, ConverterParameter=Tint}">
+                                                <DockPanel>
+                                                    <Border DockPanel.Dock="Top" CornerRadius="10,10,0,0" Height="26"
+                                                            Background="{Binding Estado, Converter={StaticResource EstadoColor}}">
+                                                        <Grid Margin="9,0">
+                                                            <TextBlock Text="{Binding EstadoTexto}" Foreground="White" FontSize="11" FontWeight="Bold" VerticalAlignment="Center" />
+                                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Capacidad}" Foreground="#F0FFFFFF" FontSize="10" />
+                                                                <TextBlock Text=" pers." Foreground="#F0FFFFFF" FontSize="10" />
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
+                                                    <Grid>
+                                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                            <TextBlock Text="{Binding Numero}" FontSize="30" FontWeight="ExtraBold"
+                                                                       Foreground="#12233F" HorizontalAlignment="Center" />
+                                                            <TextBlock Text="{Binding TotalTexto}" FontSize="13" FontWeight="Bold"
+                                                                       Foreground="#12233F" HorizontalAlignment="Center"
+                                                                       Visibility="{Binding TieneCuenta, Converter={StaticResource BoolAVis}}" />
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </DockPanel>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </ScrollViewer>
+        </DockPanel>
+
+        <!-- ===== Panel de la cuenta ===== -->
+        <Border Grid.Column="1" Background="White" BorderBrush="{StaticResource Brush.Borde}" BorderThickness="1,0,0,0">
+            <Grid Margin="16,18">
+                <!-- Sin selección -->
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                            Visibility="{Binding HaySeleccion, Converter={StaticResource BoolAVis}, ConverterParameter=Inv}">
+                    <TextBlock Text="&#x1F37D;" FontSize="38" HorizontalAlignment="Center" Opacity="0.6" />
+                    <TextBlock Text="Elige una mesa del salón para atender su cuenta" Style="{StaticResource Muted}"
+                               Margin="0,10,0,0" TextAlignment="Center" TextWrapping="Wrap" />
+                </StackPanel>
+
+                <!-- Cuenta de la mesa seleccionada -->
+                <DockPanel Visibility="{Binding HaySeleccion, Converter={StaticResource BoolAVis}}">
+                    <!-- Cabecera -->
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                            <Border Width="14" Height="14" CornerRadius="7" VerticalAlignment="Center" Margin="0,0,8,0"
+                                    Background="{Binding Seleccion.Estado, Converter={StaticResource EstadoColor}}" />
+                            <TextBlock Text="Mesa " Style="{StaticResource H2}" />
+                            <TextBlock Text="{Binding Seleccion.Numero}" Style="{StaticResource H2}" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Editar" Background="Transparent" BorderThickness="0"
+                                Foreground="{StaticResource Brush.Primary}" FontWeight="SemiBold" Cursor="Hand" Padding="6,4"
+                                VerticalAlignment="Center"
+                                Command="{Binding EditarMesaCommand}" CommandParameter="{Binding Seleccion}" />
+                    </Grid>
+
+                    <!-- Buscador + catálogo -->
+                    <TextBox DockPanel.Dock="Top" Style="{StaticResource InputEstandar}" Margin="0,0,0,8"
+                             Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}"
+                             Tag="Buscar producto…" />
+
+                    <Border DockPanel.Dock="Top" Height="150" Background="{StaticResource Brush.Fondo}" CornerRadius="10"
+                            Padding="6" Margin="0,0,0,10">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding ProductosView}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Width="112" Height="60" Margin="3" Cursor="Hand"
+                                                Command="{Binding DataContext.ElegirProductoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="bd" Background="White" BorderBrush="#D5DBE3" BorderThickness="1"
+                                                            CornerRadius="8" Padding="6">
+                                                        <StackPanel VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Nombre}" FontSize="12" FontWeight="SemiBold"
+                                                                       Foreground="#12233F" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
+                                                                       MaxHeight="32" />
+                                                            <TextBlock Text="{Binding Precio, Converter={StaticResource Moneda}}"
+                                                                       FontSize="11" Foreground="{StaticResource Brush.Primary}" FontWeight="Bold" Margin="0,2,0,0" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Brush.Primary}" />
+                                                            <Setter TargetName="bd" Property="Background" Value="#FFF1EA" />
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
+
+                    <!-- Pie: total + acciones (o panel de cobro) -->
+                    <StackPanel DockPanel.Dock="Bottom">
+                        <Border Height="1" Background="{StaticResource Brush.Borde}" Margin="0,4,0,8" />
+
+                        <!-- Cobro (diálogo simple embebido) -->
+                        <Border Background="#F8F4EE" CornerRadius="12" Padding="14" Margin="0,0,0,8"
+                                Visibility="{Binding CobroVisible, Converter={StaticResource BoolAVis}}">
+                            <StackPanel>
+                                <TextBlock Text="Cobrar mesa" FontWeight="Bold" FontSize="15" Foreground="#12233F" Margin="0,0,0,8" />
+                                <Grid Margin="0,0,0,10">
+                                    <TextBlock Text="TOTAL" FontWeight="Bold" FontSize="16" Foreground="#12233F" />
+                                    <TextBlock Text="{Binding TotalCuentaTexto}" HorizontalAlignment="Right"
+                                               FontWeight="ExtraBold" FontSize="18" Foreground="{StaticResource Brush.Primary}" />
+                                </Grid>
+                                <TextBlock Text="Método de pago" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                                <ComboBox MinHeight="42" VerticalContentAlignment="Center" Margin="0,0,0,8"
+                                          ItemsSource="{Binding MetodosPago}" SelectedIndex="{Binding MetodoPagoIndex}" />
+                                <TextBlock Text="Paga con (opcional)" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                                <TextBox Style="{StaticResource InputEstandar}" Margin="0,0,0,10"
+                                         Text="{Binding PagaCon, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" />
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Content="Cancelar" Style="{StaticResource BotonSecundario}" MinWidth="90" Margin="0,0,8,0"
+                                            Command="{Binding CancelarCobroCommand}" />
+                                    <Button Content="Cobrar y cerrar" Style="{StaticResource BotonPrimario}" MinWidth="140"
+                                            Command="{Binding ConfirmarCobroCommand}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <Grid Margin="0,0,0,8" Visibility="{Binding CobroVisible, Converter={StaticResource BoolAVis}, ConverterParameter=Inv}">
+                            <TextBlock Text="Total cuenta" Style="{StaticResource Muted}" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding TotalCuentaTexto}" HorizontalAlignment="Right"
+                                       FontWeight="ExtraBold" FontSize="20" Foreground="{StaticResource Brush.Primary}" />
+                        </Grid>
+                        <Grid Visibility="{Binding CobroVisible, Converter={StaticResource BoolAVis}, ConverterParameter=Inv}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="8" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Button Grid.Column="0" Content="Enviar a cocina" Style="{StaticResource BotonSecundario}" Height="48"
+                                    Command="{Binding EnviarCocinaCommand}" />
+                            <Button Grid.Column="2" Content="Cobrar" Style="{StaticResource BotonPrimario}" Height="48"
+                                    Command="{Binding IniciarCobroCommand}" />
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Líneas de la cuenta -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding LineasCuenta}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0,3" CornerRadius="8" Padding="10,7"
+                                            Background="{Binding EnviadoCocina, Converter={StaticResource BoolAVis}, ConverterParameter=Inv}">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="Background" Value="#EAF6EE" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding EnviadoCocina}" Value="False">
+                                                        <Setter Property="Background" Value="{StaticResource Brush.Fondo}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <!-- Check de enviado -->
+                                            <TextBlock Grid.Column="0" Text="&#x2713;" Foreground="#16A34A" FontWeight="Bold" FontSize="15"
+                                                       VerticalAlignment="Center" Margin="0,0,6,0"
+                                                       Visibility="{Binding EnviadoCocina, Converter={StaticResource BoolAVis}}" />
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock TextTrimming="CharacterEllipsis" Foreground="#12233F">
+                                                    <Run Text="{Binding CantidadTexto, Mode=OneWay}" FontWeight="Bold" /><Run Text="× " /><Run Text="{Binding Descripcion, Mode=OneWay}" />
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding Nota}" FontSize="11" Foreground="#8A5A2B"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           Visibility="{Binding TieneNota, Converter={StaticResource BoolAVis}}" />
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="2" VerticalAlignment="Center" FontWeight="SemiBold" Margin="8,0"
+                                                       Text="{Binding Importe, Converter={StaticResource Moneda}}" />
+                                            <Button Grid.Column="3" Content="+" Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                                    Foreground="{StaticResource Brush.Primary}" FontWeight="Bold" FontSize="16" Padding="6,0"
+                                                    Command="{Binding DataContext.IncrementarLineaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}" />
+                                            <Button Grid.Column="4" Content="&#x2715;" Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                                    Foreground="{StaticResource Brush.Error}" FontWeight="Bold" Padding="4,0"
+                                                    Command="{Binding DataContext.QuitarLineaCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Grid>
+        </Border>
+
+        <!-- Aviso de estado -->
+        <Border VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,440,16"
+                Background="{StaticResource Brush.Navy}" Padding="16,10"
+                Visibility="{Binding MensajeEstado, Converter={StaticResource BoolAVis}}">
+            <TextBlock Text="{Binding MensajeEstado}" Foreground="White" FontSize="13" />
+        </Border>
+
+        <!-- ============ Editor de mesa (overlay) ============ -->
+        <Grid Grid.ColumnSpan="2" Background="#88000000"
+              Visibility="{Binding EditorVisible, Converter={StaticResource BoolAVis}}">
+            <Border Style="{StaticResource Tarjeta}" Width="420" VerticalAlignment="Center"
+                    HorizontalAlignment="Center" Padding="24">
+                <StackPanel>
+                    <TextBlock Text="{Binding TituloEditor}" Style="{StaticResource H2}" Margin="0,0,0,16" />
+
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="12" />
+                            <ColumnDefinition Width="100" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Número / nombre" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                            <TextBox Style="{StaticResource InputEstandar}" Text="{Binding EdNumero, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Capacidad" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                            <TextBox Style="{StaticResource InputEstandar}" Text="{Binding EdCapacidad, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="Zona / ambiente" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                    <TextBox Style="{StaticResource InputEstandar}" Margin="0,0,0,4"
+                             Text="{Binding EdZona, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="Ej. Salón, Terraza, Segundo piso. Las mesas se agrupan por zona en el mapa."
+                               Style="{StaticResource Muted}" FontSize="11" Margin="0,0,0,12" />
+
+                    <TextBlock Text="Notas (opcional)" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                    <TextBox Style="{StaticResource InputEstandar}" Height="56" TextWrapping="Wrap" AcceptsReturn="True"
+                             Text="{Binding EdNotas, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <Grid Margin="0,16,0,0">
+                        <Button Content="Eliminar mesa" Background="Transparent" BorderThickness="0"
+                                Foreground="{StaticResource Brush.Error}" FontWeight="SemiBold" Cursor="Hand"
+                                HorizontalAlignment="Left" Padding="2,0" VerticalAlignment="Center"
+                                Command="{Binding EliminarMesaCommand}" CommandParameter="{Binding Seleccion}"
+                                Visibility="{Binding EditandoId, Converter={StaticResource BoolAVis}}" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="Cancelar" Style="{StaticResource BotonSecundario}" MinWidth="110" Margin="0,0,10,0"
+                                    Command="{Binding CancelarEditorCommand}" />
+                            <Button Content="Guardar" Style="{StaticResource BotonPrimario}" MinWidth="110"
+                                    Command="{Binding GuardarMesaCommand}" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ============ Diálogo: personalizar producto (rubro comida) ============ -->
+        <Grid Grid.ColumnSpan="2" Background="#88000000"
+              Visibility="{Binding PersonalizarVisible, Converter={StaticResource BoolAVis}}">
+            <Border Style="{StaticResource Tarjeta}" Width="460" MaxHeight="680"
+                    VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top">
+                        <TextBlock Text="{Binding PersonalizarTitulo}" Style="{StaticResource H2}" />
+                        <TextBlock Text="Personaliza el plato y agrégalo a la cuenta." Style="{StaticResource Muted}"
+                                   FontSize="12" Margin="0,2,0,12" />
+                    </StackPanel>
+
+                    <StackPanel DockPanel.Dock="Bottom">
+                        <Border Height="1" Background="{StaticResource Brush.Borde}" Margin="0,12,0,12" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120" />
+                                <ColumnDefinition Width="14" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Cantidad" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                                <TextBox Style="{StaticResource InputEstandar}"
+                                         Text="{Binding PersonalizarCantidad, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2" VerticalAlignment="Bottom">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Unitario:" Style="{StaticResource Muted}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                                    <TextBlock Text="{Binding PersonalizarPrecioTexto}" FontWeight="SemiBold"
+                                               Foreground="{StaticResource Brush.Primary}" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <TextBlock Text="Total" Style="{StaticResource Muted}" Margin="0,4,0,0" />
+                                <TextBlock Text="{Binding PersonalizarTotalTexto}" FontSize="22" FontWeight="ExtraBold"
+                                           Foreground="{StaticResource Brush.Primary}" />
+                            </StackPanel>
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+                            <Button Content="Cancelar" Style="{StaticResource BotonSecundario}" MinWidth="110" Margin="0,0,10,0"
+                                    Command="{Binding CancelarPersonalizacionCommand}" />
+                            <Button Content="Agregar a la cuenta" Style="{StaticResource BotonPrimario}" MinWidth="160"
+                                    Command="{Binding ConfirmarPersonalizacionCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel>
+                            <ItemsControl ItemsSource="{Binding PersonalizarGrupos}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Margin="0,0,0,12">
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                                <TextBlock Text="{Binding Nombre}" FontWeight="Bold" FontSize="14"
+                                                           Foreground="#12233F" VerticalAlignment="Center" />
+                                                <Border Background="#FDE2E2" CornerRadius="4" Padding="5,1" Margin="8,0,0,0"
+                                                        VerticalAlignment="Center"
+                                                        Visibility="{Binding Obligatorio, Converter={StaticResource BoolAVis}}">
+                                                    <TextBlock Text="Obligatorio" FontSize="10" FontWeight="Bold"
+                                                               Foreground="{StaticResource Brush.Error}" />
+                                                </Border>
+                                            </StackPanel>
+
+                                            <ItemsControl ItemsSource="{Binding Opciones}"
+                                                          Visibility="{Binding Multiple, Converter={StaticResource BoolAVis}, ConverterParameter=Inv}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="0,2">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <RadioButton Grid.Column="0" Content="{Binding Nombre}" FontSize="14"
+                                                                         VerticalContentAlignment="Center"
+                                                                         GroupName="{Binding Padre.GrupoRadio}"
+                                                                         IsChecked="{Binding Seleccionada}" />
+                                                            <TextBlock Grid.Column="1" Text="{Binding ExtraTexto}" FontWeight="SemiBold"
+                                                                       Foreground="{StaticResource Brush.Primary}" VerticalAlignment="Center"
+                                                                       Visibility="{Binding TieneExtra, Converter={StaticResource BoolAVis}}" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+
+                                            <ItemsControl ItemsSource="{Binding Opciones}"
+                                                          Visibility="{Binding Multiple, Converter={StaticResource BoolAVis}}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="0,2">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <CheckBox Grid.Column="0" Content="{Binding Nombre}" FontSize="14"
+                                                                      VerticalContentAlignment="Center"
+                                                                      IsChecked="{Binding Seleccionada}" />
+                                                            <TextBlock Grid.Column="1" Text="{Binding ExtraTexto}" FontWeight="SemiBold"
+                                                                       Foreground="{StaticResource Brush.Primary}" VerticalAlignment="Center"
+                                                                       Visibility="{Binding TieneExtra, Converter={StaticResource BoolAVis}}" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <StackPanel Visibility="{Binding PersonalizarPermiteNota, Converter={StaticResource BoolAVis}}">
+                                <TextBlock Text="Nota para la cocina" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                                <TextBox Style="{StaticResource InputEstandar}" MinHeight="48" TextWrapping="Wrap"
+                                         AcceptsReturn="True"
+                                         Text="{Binding PersonalizarNota, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

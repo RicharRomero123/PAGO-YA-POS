@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>PagoYa · Panel de Licencias</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <!-- ===================== Pantalla de acceso ===================== -->
+    <section id="vista-auth" class="auth hidden">
+        <div class="auth-card">
+            <div class="brand">
+                <span class="brand-dot">P</span>
+                <div>
+                    <h1>PagoYa</h1>
+                    <p>Panel de administración de licencias</p>
+                </div>
+            </div>
+
+            <h2 id="auth-titulo">Iniciar sesión</h2>
+            <p id="auth-sub" class="muted"></p>
+
+            <form id="form-auth" autocomplete="off">
+                <label>Usuario</label>
+                <input id="in-usuario" type="text" placeholder="admin" required />
+                <label>Contraseña</label>
+                <input id="in-password" type="password" placeholder="••••••••" required />
+                <p id="auth-error" class="error-msg hidden"></p>
+                <button id="btn-auth" type="submit" class="btn btn-primary btn-block">Entrar</button>
+            </form>
+        </div>
+        <p class="pie">PagoYa POS · Perú</p>
+    </section>
+
+    <!-- ===================== Panel principal ===================== -->
+    <section id="vista-panel" class="panel hidden">
+        <header class="topbar">
+            <div class="brand small">
+                <span class="brand-dot">P</span>
+                <strong>PagoYa · Licencias</strong>
+            </div>
+            <div class="topbar-right">
+                <span id="lbl-usuario" class="muted"></span>
+                <button id="btn-logout" class="btn btn-ghost">Salir</button>
+            </div>
+        </header>
+
+        <main class="contenido">
+            <div class="toolbar">
+                <button id="btn-nueva" class="btn btn-primary">+ Nueva licencia</button>
+                <div class="toolbar-filtros">
+                    <input id="in-buscar" type="search" placeholder="Buscar por cliente, RUC o clave…" />
+                    <select id="sel-estado">
+                        <option value="">Todos los estados</option>
+                        <option value="Emitida">Emitida</option>
+                        <option value="Activa">Activa</option>
+                        <option value="Suspendida">Suspendida</option>
+                        <option value="Expirada">Expirada</option>
+                        <option value="Revocada">Revocada</option>
+                    </select>
+                    <button id="btn-refrescar" class="btn btn-ghost">↻</button>
+                </div>
+            </div>
+
+            <div class="tabla-wrap">
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Plan</th>
+                            <th>Clave de licencia</th>
+                            <th>Estado</th>
+                            <th>Equipo (HWID)</th>
+                            <th>Creada</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-licencias"></tbody>
+                </table>
+                <p id="tabla-vacia" class="vacia hidden">Aún no has emitido licencias. Crea la primera con “Nueva licencia”.</p>
+            </div>
+        </main>
+    </section>
+
+    <!-- ===================== Modal: nueva licencia ===================== -->
+    <div id="modal-nueva" class="modal hidden">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3>Nueva licencia</h3>
+                <button class="btn-cerrar" data-cerrar="modal-nueva">✕</button>
+            </div>
+            <form id="form-nueva">
+                <div class="grid2">
+                    <div>
+                        <label>Nombre del cliente / negocio</label>
+                        <input id="n-nombre" type="text" placeholder="Bodega Doña Rosa" />
+                    </div>
+                    <div>
+                        <label>RUC (opcional)</label>
+                        <input id="n-ruc" type="text" placeholder="20512345678" />
+                    </div>
+                </div>
+                <div class="grid2">
+                    <div>
+                        <label>Plan</label>
+                        <select id="n-tier">
+                            <option value="base">Base — pago único (offline)</option>
+                            <option value="cloud">Cloud — S/ 25 / mes</option>
+                            <option value="facturador">Facturador Pro — S/ 50–70 / mes</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Vigencia (días) <span class="muted">— solo suscripción</span></label>
+                        <input id="n-dias" type="number" min="1" placeholder="30" />
+                    </div>
+                </div>
+                <div class="grid2">
+                    <div>
+                        <label>Canal de venta</label>
+                        <select id="n-canal">
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="facebook">Facebook</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>HWID a pre-vincular (opcional)</label>
+                        <input id="n-hwid" type="text" placeholder="A1B2-C3D4-…" />
+                    </div>
+                </div>
+                <label>Notas internas (opcional)</label>
+                <input id="n-notas" type="text" placeholder="Vendido el 26/08, pago Yape confirmado" />
+                <p id="nueva-error" class="error-msg hidden"></p>
+                <div class="modal-acciones">
+                    <button type="button" class="btn btn-ghost" data-cerrar="modal-nueva">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Generar licencia</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================== Modal: licencia generada ===================== -->
+    <div id="modal-clave" class="modal hidden">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h3>✅ Licencia generada</h3>
+                <button class="btn-cerrar" data-cerrar="modal-clave">✕</button>
+            </div>
+            <p class="muted">Entrega esta clave al cliente. La usará en <strong>Configuración → Activar licencia</strong> de su PagoYa.</p>
+            <div class="clave-box">
+                <code id="clave-generada"></code>
+                <button id="btn-copiar-clave" class="btn btn-ghost">Copiar</button>
+            </div>
+            <div class="modal-acciones">
+                <a id="btn-whatsapp" class="btn btn-primary" target="_blank" rel="noopener">Enviar por WhatsApp</a>
+                <button type="button" class="btn btn-ghost" data-cerrar="modal-clave">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>

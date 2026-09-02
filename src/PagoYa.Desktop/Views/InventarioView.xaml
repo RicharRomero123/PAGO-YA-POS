@@ -1,0 +1,446 @@
+<UserControl x:Class="PagoYa.Desktop.Views.InventarioView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:PagoYa.Desktop.Converters"
+             xmlns:vm="clr-namespace:PagoYa.Desktop.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance vm:InventarioViewModel}"
+             Background="{StaticResource Brush.Fondo}">
+    <UserControl.Resources>
+        <conv:MonedaSolesConverter x:Key="Moneda" />
+        <conv:BoolAVisibilidadConverter x:Key="BoolAVis" />
+        <conv:RutaAImagenConverter x:Key="Img" />
+    </UserControl.Resources>
+
+    <Grid>
+    <DockPanel Margin="24">
+        <!-- Encabezado + búsqueda -->
+        <Grid DockPanel.Dock="Top" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="&#x1F4E6;" FontSize="30" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Inventario" Style="{StaticResource H1}" />
+                    <TextBlock Text="Productos, stock, fotos y proveedor de cada artículo." Style="{StaticResource Muted}" />
+                </StackPanel>
+            </StackPanel>
+            <TextBox Grid.Column="1" Style="{StaticResource BuscadorGrande}" MinHeight="48" FontSize="16"
+                     Margin="24,0" MaxWidth="420" HorizontalAlignment="Right"
+                     Text="{Binding TextoBusqueda, UpdateSourceTrigger=PropertyChanged}" />
+            <Button Grid.Column="2" Content="+ Nuevo producto" Style="{StaticResource BotonPrimario}"
+                    MinHeight="48" Command="{Binding NuevoProductoCommand}" />
+        </Grid>
+
+        <!-- Tabla -->
+        <Border Style="{StaticResource Tarjeta}" Padding="0">
+            <DockPanel>
+                <!-- Cabecera de columnas -->
+                <Grid DockPanel.Dock="Top" Margin="20,14" Background="Transparent">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="140" />
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="110" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="Código" Style="{StaticResource Muted}" FontWeight="Bold" />
+                    <TextBlock Grid.Column="1" Text="Producto" Style="{StaticResource Muted}" FontWeight="Bold" />
+                    <TextBlock Grid.Column="2" Text="Categoría" Style="{StaticResource Muted}" FontWeight="Bold" />
+                    <TextBlock Grid.Column="3" Text="Proveedor" Style="{StaticResource Muted}" FontWeight="Bold" />
+                    <TextBlock Grid.Column="4" Text="Precio" Style="{StaticResource Muted}" FontWeight="Bold" />
+                    <TextBlock Grid.Column="5" Text="Stock" Style="{StaticResource Muted}" FontWeight="Bold" />
+                    <TextBlock Grid.Column="6" Text="Estado" Style="{StaticResource Muted}" FontWeight="Bold" />
+                </Grid>
+                <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource Brush.Borde}" />
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding ItemsView}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{StaticResource Brush.Borde}" BorderThickness="0,0,0,1"
+                                        Background="Transparent" Cursor="Hand"
+                                        ToolTip="Doble clic para editar">
+                                    <Border.InputBindings>
+                                        <MouseBinding MouseAction="LeftDoubleClick"
+                                                      Command="{Binding DataContext.EditarProductoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                      CommandParameter="{Binding}" />
+                                    </Border.InputBindings>
+                                    <Grid Margin="20,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="110" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="120" />
+                                            <ColumnDefinition Width="150" />
+                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="80" />
+                                            <ColumnDefinition Width="110" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding Codigo}" Style="{StaticResource Muted}" VerticalAlignment="Center" />
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Border Width="40" Height="40" Margin="0,0,10,0" Background="#EEF1F5">
+                                                <Grid>
+                                                    <TextBlock Text="&#x1F4E6;" FontSize="18" Opacity="0.45" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                               Visibility="{Binding TieneImagen, Converter={StaticResource BoolAVis}, ConverterParameter=Inv}" />
+                                                    <Image Source="{Binding ImagenRuta, Converter={StaticResource Img}}" Stretch="UniformToFill"
+                                                           Visibility="{Binding TieneImagen, Converter={StaticResource BoolAVis}}" />
+                                                </Grid>
+                                            </Border>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Nombre}" Style="{StaticResource Body}" FontWeight="SemiBold" />
+                                                <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                    <!-- Principio activo (genéricos) -->
+                                                    <TextBlock Text="{Binding PrincipioActivo}" Style="{StaticResource Muted}" FontSize="11"
+                                                               VerticalAlignment="Center" Margin="0,0,6,0"
+                                                               Visibility="{Binding PrincipioActivo, Converter={StaticResource BoolAVis}}" />
+                                                    <!-- Badge Rx (requiere receta) -->
+                                                    <Border Background="#EEF4FF" CornerRadius="4" Padding="5,1" Margin="0,0,6,0" VerticalAlignment="Center"
+                                                            Visibility="{Binding RequiereReceta, Converter={StaticResource BoolAVis}}">
+                                                        <TextBlock Text="Rx" FontSize="10" FontWeight="Bold" Foreground="#2563EB" />
+                                                    </Border>
+                                                    <!-- Badge VENCIDO (rojo) -->
+                                                    <Border Background="#FDE2E2" CornerRadius="4" Padding="6,1" VerticalAlignment="Center"
+                                                            Visibility="{Binding EstaVencido, Converter={StaticResource BoolAVis}}">
+                                                        <TextBlock Text="VENCIDO" FontSize="10" FontWeight="Bold"
+                                                                   Foreground="{StaticResource Brush.Error}" />
+                                                    </Border>
+                                                    <!-- Badge por vencer ≤30 d (ámbar) con la fecha -->
+                                                    <Border Background="#FEF3D9" CornerRadius="4" Padding="6,1" VerticalAlignment="Center"
+                                                            Visibility="{Binding PorVencer, Converter={StaticResource BoolAVis}}">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding EtiquetaVencimiento}" FontSize="10" FontWeight="Bold"
+                                                                       Foreground="{StaticResource Brush.Warning}" />
+                                                            <TextBlock Text="{Binding FechaVencimientoTexto, StringFormat={} · {0}}" FontSize="10"
+                                                                       Foreground="{StaticResource Brush.Warning}" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="2" Text="{Binding Categoria}" Style="{StaticResource Muted}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="&#x1F69A;" FontSize="13" VerticalAlignment="Center" Margin="0,0,5,0"
+                                                       Visibility="{Binding ProveedorNombre, Converter={StaticResource BoolAVis}}" />
+                                            <TextBlock Text="{Binding ProveedorTexto}" Style="{StaticResource Muted}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                        <!-- Precio: normal, o (con oferta) tachado + precio final + badge -->
+                                        <StackPanel Grid.Column="4" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Precio, Converter={StaticResource Moneda}}" Style="{StaticResource Body}" FontWeight="Bold"
+                                                       Visibility="{Binding TieneDescuento, Converter={StaticResource BoolAVis}, ConverterParameter=Inv}" />
+                                            <StackPanel Visibility="{Binding TieneDescuento, Converter={StaticResource BoolAVis}}">
+                                                <TextBlock Text="{Binding Precio, Converter={StaticResource Moneda}}" Style="{StaticResource Muted}"
+                                                           FontSize="11" TextDecorations="Strikethrough" />
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding PrecioFinal, Converter={StaticResource Moneda}}" FontWeight="Bold"
+                                                               Foreground="{StaticResource Brush.Primary}" VerticalAlignment="Center" />
+                                                    <Border Background="{StaticResource Brush.Primary}" CornerRadius="4" Padding="5,1"
+                                                            Margin="6,0,0,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding EtiquetaDescuento}" Foreground="White" FontSize="10" FontWeight="Bold" />
+                                                    </Border>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="5" Text="{Binding Stock}" Style="{StaticResource Body}" VerticalAlignment="Center" />
+                                        <Border Grid.Column="6" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                Style="{StaticResource ChipPagado}"
+                                                Visibility="{Binding EsOk, Converter={StaticResource BoolAVis}}">
+                                            <TextBlock Text="OK" Style="{StaticResource ChipTexto}"
+                                                       Foreground="{StaticResource Brush.Success}" />
+                                        </Border>
+                                        <Border Grid.Column="6" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                Style="{StaticResource ChipPendiente}"
+                                                Visibility="{Binding StockBajo, Converter={StaticResource BoolAVis}}">
+                                            <TextBlock Text="Stock bajo" Style="{StaticResource ChipTexto}"
+                                                       Foreground="{StaticResource Brush.Warning}" />
+                                        </Border>
+                                        <Border Grid.Column="6" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                Style="{StaticResource ChipError}"
+                                                Visibility="{Binding SinStock, Converter={StaticResource BoolAVis}}">
+                                            <TextBlock Text="Sin stock" Style="{StaticResource ChipTexto}"
+                                                       Foreground="{StaticResource Brush.Error}" />
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+    </DockPanel>
+
+    <!-- Aviso de estado (efímero) -->
+    <Border VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,16"
+            Background="{StaticResource Brush.Navy}" CornerRadius="0" Padding="16,10"
+            Visibility="{Binding MensajeEstado, Converter={StaticResource BoolAVis}}">
+        <TextBlock Text="{Binding MensajeEstado}" Foreground="White" FontSize="13" />
+    </Border>
+
+    <!-- ============ Editor de producto (overlay) ============ -->
+    <Grid Background="#88000000"
+          Visibility="{Binding EditorVisible, Converter={StaticResource BoolAVis}}">
+        <Border Style="{StaticResource Tarjeta}" Width="440" VerticalAlignment="Center"
+                HorizontalAlignment="Center" Padding="24" MaxHeight="720">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="Producto" Style="{StaticResource H2}" Margin="0,0,0,16" />
+
+                <TextBlock Text="Código de barras / SKU" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                <TextBox Style="{StaticResource InputEstandar}" Margin="0,0,0,12"
+                         Text="{Binding FormCodigo, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Text="Nombre" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                <TextBox Style="{StaticResource InputEstandar}" Margin="0,0,0,12"
+                         Text="{Binding FormNombre, UpdateSourceTrigger=PropertyChanged}" />
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Categoría" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <ComboBox Grid.Column="0" IsEditable="True" MinHeight="48" FontSize="15" VerticalContentAlignment="Center"
+                                      ItemsSource="{Binding CategoriasSugeridas}"
+                                      Text="{Binding FormCategoria, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button Grid.Column="1" Content="＋" Style="{StaticResource BotonSecundario}"
+                                    Command="{Binding AgregarCategoriaCommand}" MinHeight="48" MinWidth="48"
+                                    Margin="6,0,0,0" FontSize="18" Padding="0"
+                                    ToolTip="Crear/guardar esta categoría para reutilizarla en la lista" />
+                        </Grid>
+                        <TextBlock Text="Elige una o escribe una nueva y pulsa ＋ para guardarla."
+                                   Style="{StaticResource Muted}" FontSize="11" Margin="2,4,0,0" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Proveedor" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                        <ComboBox MinHeight="48" FontSize="15" VerticalContentAlignment="Center"
+                                  ItemsSource="{Binding ProveedoresOpciones}" DisplayMemberPath="Nombre"
+                                  SelectedValuePath="Id" SelectedValue="{Binding FormProveedorId}" />
+                    </StackPanel>
+                </Grid>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Precio (S/)" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                        <TextBox Style="{StaticResource InputEstandar}"
+                                 Text="{Binding FormPrecio, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Stock" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                        <TextBox Style="{StaticResource InputEstandar}"
+                                 Text="{Binding FormStock, UpdateSourceTrigger=PropertyChanged, StringFormat=N0}" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Stock mínimo (reposición) -->
+                <TextBlock Text="Stock mínimo (aviso de reposición)" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                <TextBox Style="{StaticResource InputEstandar}" Margin="0,0,0,12"
+                         Text="{Binding FormStockMinimo, UpdateSourceTrigger=PropertyChanged, StringFormat=N0}" />
+
+                <!-- ===== Sección farmacéutica (solo rubro farmacia/botica) ===== -->
+                <Border Background="#EEF4FF" CornerRadius="10" Padding="12" Margin="0,0,0,12"
+                        Visibility="{Binding EsFarmacia, Converter={StaticResource BoolAVis}}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <TextBlock Text="&#x1F48A;" FontSize="16" Margin="0,0,6,0" VerticalAlignment="Center" />
+                            <TextBlock Text="Datos farmacéuticos" Style="{StaticResource Muted}" FontWeight="Bold" VerticalAlignment="Center" />
+                        </StackPanel>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Fecha de vencimiento" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                                <DatePicker MinHeight="44" FontSize="15" VerticalContentAlignment="Center"
+                                            SelectedDate="{Binding FormFechaVencimiento}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Lote" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                                <TextBox Style="{StaticResource InputEstandar}"
+                                         Text="{Binding FormLote, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Principio activo (DCI)" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                        <TextBox Style="{StaticResource InputEstandar}" Margin="0,0,0,10"
+                                 Text="{Binding FormPrincipioActivo, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Text="Registro Sanitario (DIGEMID)" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                        <TextBox Style="{StaticResource InputEstandar}" Margin="0,0,0,10"
+                                 Text="{Binding FormRegistroSanitario, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <CheckBox Content="Requiere receta médica" FontSize="14" FontWeight="SemiBold"
+                                  IsChecked="{Binding FormRequiereReceta}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- ===== Sección personalización / modificadores (solo rubro comida) ===== -->
+                <Border Background="#FFF3EC" CornerRadius="10" Padding="12" Margin="0,0,0,12"
+                        Visibility="{Binding EsComida, Converter={StaticResource BoolAVis}}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <TextBlock Text="&#x1F37D;" FontSize="16" Margin="0,0,6,0" VerticalAlignment="Center" />
+                            <TextBlock Text="Personalización / modificadores" Style="{StaticResource Muted}" FontWeight="Bold" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBlock Text="Tamaños/presentaciones, agregados con precio, quitar ingredientes. Se ofrecen al cobrar."
+                                   Style="{StaticResource Muted}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,8" />
+
+                        <!-- Grupos -->
+                        <ItemsControl ItemsSource="{Binding Grupos}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="White" BorderBrush="{StaticResource Brush.Borde}" BorderThickness="1"
+                                            CornerRadius="8" Padding="10" Margin="0,0,0,8">
+                                        <StackPanel>
+                                            <!-- Encabezado del grupo: nombre + eliminar -->
+                                            <Grid Margin="0,0,0,6">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox Grid.Column="0" Style="{StaticResource InputEstandar}" MinHeight="40"
+                                                         Tag="Nombre del grupo (Tamaño, Agregados…)"
+                                                         Text="{Binding Nombre, UpdateSourceTrigger=PropertyChanged}" />
+                                                <Button Grid.Column="1" Content="&#x1F5D1;" FontSize="14" Margin="6,0,0,0"
+                                                        MinHeight="40" MinWidth="40" Padding="0" Cursor="Hand"
+                                                        Background="#FDE2E2" Foreground="{StaticResource Brush.Error}" BorderThickness="0"
+                                                        ToolTip="Eliminar grupo"
+                                                        Command="{Binding DataContext.EliminarGrupoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}" />
+                                            </Grid>
+
+                                            <!-- Flags del grupo -->
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                                <CheckBox Content="Elige varios" FontSize="12" Margin="0,0,16,0"
+                                                          VerticalContentAlignment="Center" IsChecked="{Binding Multiple}" />
+                                                <CheckBox Content="Obligatorio" FontSize="12"
+                                                          VerticalContentAlignment="Center" IsChecked="{Binding Obligatorio}" />
+                                            </StackPanel>
+
+                                            <!-- Opciones del grupo -->
+                                            <ItemsControl ItemsSource="{Binding Opciones}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="0,0,0,5">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="8" />
+                                                                <ColumnDefinition Width="88" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBox Grid.Column="0" Style="{StaticResource InputEstandar}" MinHeight="38"
+                                                                     Text="{Binding Nombre, UpdateSourceTrigger=PropertyChanged}" />
+                                                            <TextBox Grid.Column="2" Style="{StaticResource InputEstandar}" MinHeight="38"
+                                                                     ToolTip="Precio extra (S/). 0 = sin costo"
+                                                                     Text="{Binding PrecioExtra, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" />
+                                                            <Button Grid.Column="3" Content="&#x2716;" FontSize="12" Margin="6,0,0,0"
+                                                                    MinHeight="38" MinWidth="38" Padding="0" Cursor="Hand"
+                                                                    Background="Transparent" Foreground="{StaticResource Brush.Error}" BorderThickness="0"
+                                                                    ToolTip="Eliminar opción"
+                                                                    Command="{Binding DataContext.EliminarOpcionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                    CommandParameter="{Binding}" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+
+                                            <Button Content="+ Agregar opción" Style="{StaticResource BotonSecundario}"
+                                                    HorizontalAlignment="Left" FontSize="12" Margin="0,2,0,0"
+                                                    Command="{Binding DataContext.AgregarOpcionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Button Content="+ Agregar grupo" Style="{StaticResource BotonSecundario}"
+                                HorizontalAlignment="Left" Command="{Binding AgregarGrupoCommand}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Descuento / oferta del producto -->
+                <Border Background="#F8F4EE" CornerRadius="10" Padding="12" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Descuento / oferta" Style="{StaticResource Muted}" FontWeight="Bold" Margin="0,0,0,6" />
+                        <ComboBox MinHeight="44" FontSize="15" VerticalContentAlignment="Center"
+                                  SelectedIndex="{Binding FormDescuentoModo}">
+                            <ComboBoxItem Content="Sin descuento" />
+                            <ComboBoxItem Content="Porcentaje (%)" />
+                            <ComboBoxItem Content="Precio de oferta (S/)" />
+                        </ComboBox>
+                        <StackPanel Margin="0,10,0,0"
+                                    Visibility="{Binding FormDescuentoTieneValor, Converter={StaticResource BoolAVis}}">
+                            <TextBlock Text="{Binding FormDescuentoEtiqueta}" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                            <TextBox Style="{StaticResource InputEstandar}"
+                                     Text="{Binding FormDescuentoValor, UpdateSourceTrigger=PropertyChanged, StringFormat=N2}" />
+                            <TextBlock Text="{Binding FormPreviewDescuento}" Foreground="{StaticResource Brush.Primary}"
+                                       FontSize="13" FontWeight="SemiBold" Margin="2,8,0,0" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Foto del producto -->
+                <TextBlock Text="Foto del producto" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                <Grid Margin="0,0,0,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="14" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <!-- Preview -->
+                    <Border Grid.Column="0" Width="80" Height="80" CornerRadius="0"
+                            Background="#EEF1F5" BorderBrush="{StaticResource Brush.Borde}" BorderThickness="1.5">
+                        <Grid>
+                            <TextBlock Text="&#x1F4F7;" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Opacity="0.5"
+                                       Visibility="{Binding FormTieneImagen, Converter={StaticResource BoolAVis}, ConverterParameter=Inv}" />
+                            <Image Source="{Binding FormImagenRuta, Converter={StaticResource Img}}" Stretch="UniformToFill"
+                                   Visibility="{Binding FormTieneImagen, Converter={StaticResource BoolAVis}}" />
+                        </Grid>
+                    </Border>
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                        <Button Content="Cargar foto…" Style="{StaticResource BotonSecundario}"
+                                HorizontalAlignment="Left" Command="{Binding CargarFotoCommand}" />
+                        <Button Content="Quitar foto" Background="Transparent" BorderThickness="0"
+                                Foreground="{StaticResource Brush.Error}" FontSize="13" Cursor="Hand"
+                                HorizontalAlignment="Left" Margin="0,6,0,0" Padding="2,0"
+                                Command="{Binding QuitarFotoCommand}"
+                                Visibility="{Binding FormTieneImagen, Converter={StaticResource BoolAVis}}" />
+                    </StackPanel>
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+                    <Button Content="Cancelar" Style="{StaticResource BotonSecundario}"
+                            MinWidth="110" Margin="0,0,10,0"
+                            Command="{Binding CancelarEdicionCommand}" />
+                    <Button Content="Guardar" Style="{StaticResource BotonPrimario}"
+                            MinWidth="110" Command="{Binding GuardarProductoCommand}" />
+                </StackPanel>
+            </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+    </Grid>
+</UserControl>

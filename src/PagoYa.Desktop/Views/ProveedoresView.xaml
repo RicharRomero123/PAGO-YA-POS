@@ -1,0 +1,147 @@
+<UserControl x:Class="PagoYa.Desktop.Views.ProveedoresView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:PagoYa.Desktop.Converters"
+             xmlns:vm="clr-namespace:PagoYa.Desktop.ViewModels"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance vm:ProveedoresViewModel}"
+             Background="#EEF1F5">
+    <UserControl.Resources>
+        <conv:BoolAVisibilidadConverter x:Key="BoolAVis" />
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="24" MaxWidth="1000" HorizontalAlignment="Left">
+
+            <!-- Encabezado -->
+            <Grid Margin="0,0,0,16">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#x1F69A;" FontSize="30" VerticalAlignment="Center" Margin="0,0,10,0" />
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Proveedores" Style="{StaticResource H1}" />
+                        <TextBlock Text="Tus distribuidores y a quién reabastecer cada producto." Style="{StaticResource Muted}" />
+                    </StackPanel>
+                </StackPanel>
+                <Button Content="+ Nuevo proveedor" Style="{StaticResource BotonPrimario}"
+                        Command="{Binding NuevoProveedorCommand}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+            </Grid>
+
+            <!-- Formulario -->
+            <Border Background="White" BorderBrush="#D5DBE3" BorderThickness="1" Padding="20" Margin="0,0,0,16"
+                    Visibility="{Binding EditorVisible, Converter={StaticResource BoolAVis}}">
+                <StackPanel>
+                    <TextBlock Text="Datos del proveedor" Style="{StaticResource H2}" Margin="0,0,0,12" />
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="240" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Nombre / razón social" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                            <TextBox Style="{StaticResource InputEstandar}" Text="{Binding FormNombre}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="RUC" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                            <TextBox Style="{StaticResource InputEstandar}" Text="{Binding FormRuc}" />
+                        </StackPanel>
+                    </Grid>
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Contacto" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                            <TextBox Style="{StaticResource InputEstandar}" Text="{Binding FormContacto}" />
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Teléfono / WhatsApp" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                            <TextBox Style="{StaticResource InputEstandar}" Text="{Binding FormTelefono}" />
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock Text="Dirección" Style="{StaticResource Muted}" Margin="0,12,0,4" />
+                    <TextBox Style="{StaticResource InputEstandar}" Text="{Binding FormDireccion}" />
+                    <TextBlock Text="Notas (condiciones, días de reparto…)" Style="{StaticResource Muted}" Margin="0,12,0,4" />
+                    <TextBox Style="{StaticResource InputEstandar}" Text="{Binding FormNotas}" />
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                        <Button Content="Cancelar" Style="{StaticResource BotonSecundario}" Margin="0,0,10,0"
+                                Command="{Binding CancelarEdicionCommand}" />
+                        <Button Content="Guardar proveedor" Style="{StaticResource BotonPrimario}"
+                                Command="{Binding GuardarProveedorCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="{Binding MensajeEstado}" Style="{StaticResource Body}"
+                       Foreground="{StaticResource Brush.Primary}" Margin="0,0,0,12"
+                       Visibility="{Binding MensajeEstado, Converter={StaticResource BoolAVis}}" />
+
+            <!-- Tabla -->
+            <Border Background="White" BorderBrush="#D5DBE3" BorderThickness="1" Padding="0">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Top" Margin="18,14,18,10" Background="Transparent">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="180" />
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="100" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Proveedor" Style="{StaticResource Muted}" FontWeight="Bold" />
+                        <TextBlock Grid.Column="1" Text="RUC" Style="{StaticResource Muted}" FontWeight="Bold" />
+                        <TextBlock Grid.Column="2" Text="Contacto" Style="{StaticResource Muted}" FontWeight="Bold" />
+                        <TextBlock Grid.Column="3" Text="Teléfono" Style="{StaticResource Muted}" FontWeight="Bold" />
+                        <TextBlock Grid.Column="4" Text="" />
+                    </Grid>
+                    <Border DockPanel.Dock="Top" Height="1" Background="{StaticResource Brush.Borde}" />
+
+                    <TextBlock DockPanel.Dock="Top" Text="Aún no registras proveedores. Crea el primero con “Nuevo proveedor”."
+                               Style="{StaticResource Muted}" Margin="18,16" HorizontalAlignment="Center"
+                               Visibility="{Binding Vacio, Converter={StaticResource BoolAVis}}" />
+
+                    <ItemsControl ItemsSource="{Binding Proveedores}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{StaticResource Brush.Borde}" BorderThickness="0,0,0,1" Padding="18,12" Cursor="Hand"
+                                        ToolTip="Doble clic para editar">
+                                    <Border.InputBindings>
+                                        <MouseBinding MouseAction="LeftDoubleClick"
+                                                      Command="{Binding DataContext.EditarProveedorCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                      CommandParameter="{Binding}" />
+                                    </Border.InputBindings>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="150" />
+                                            <ColumnDefinition Width="180" />
+                                            <ColumnDefinition Width="150" />
+                                            <ColumnDefinition Width="100" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Border Width="34" Height="34" Background="#E0ECFF" Margin="0,0,10,0">
+                                                <TextBlock Text="&#x1F3ED;" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <TextBlock Text="{Binding Nombre}" Style="{StaticResource Body}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1" Text="{Binding Ruc}" Style="{StaticResource Muted}" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Contacto}" Style="{StaticResource Muted}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Grid.Column="3" Text="{Binding Telefono}" Style="{StaticResource Body}" VerticalAlignment="Center" />
+                                        <Button Grid.Column="4" Content="Eliminar" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                Background="Transparent" BorderThickness="0" Foreground="{StaticResource Brush.Error}"
+                                                FontSize="12" Cursor="Hand"
+                                                Command="{Binding DataContext.EliminarProveedorCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </DockPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
