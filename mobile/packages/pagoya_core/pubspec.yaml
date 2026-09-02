@@ -1,0 +1,84 @@
+name: pagoya_core
+description: >-
+  Núcleo de dominio de PagoYa Móvil. Dart PURO: entidades, Dinero, contratos
+  (puertos), persistencia drift, validación del token de licencia y cliente de
+  sincronización. NO depende de Flutter — esa es la invariante que permite
+  reusarlo mañana en Flutter Web o en un backend Dart.
+version: 0.1.0
+publish_to: none
+
+# INVARIANTE (docs/MOBILE-ARQUITECTURA.md): aquí NO entra `flutter` ni ningún
+# paquete que lo arrastre. `depend_on_referenced_packages: error` en el
+# analysis_options hace que cualquier `import 'package:flutter/...'` explote.
+# Si necesitas algo de Flutter, no lo necesitas en core: declara un PUERTO en el
+# `contratos.dart` del módulo que corresponda y que lo implemente
+# `pagoya_hardware`. (Los puertos de plataforma vigentes están en
+# `lib/licencia/puertos_licencia.dart`; ver arbitraje §4.2.)
+#
+# "Dart puro" NO quiere decir "sin dependencias": quiere decir sin Flutter. Un
+# paquete como `dio` o `drift` es Dart puro y entra sin problema.
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  # --- Persistencia local (decisión cerrada §4: drift, prohibido Isar/ObjectBox) ---
+  # `drift` es Dart puro; las libs nativas (sqlite3_flutter_libs) y la ruta del
+  # archivo (path_provider) las aporta la app, no el core: core recibe un
+  # QueryExecutor ya construido.
+  drift: ^2.23.1
+
+  # --- HTTP hacia el backend de licencias y de sync (§4: dio) ---
+  # Va en el NÚCLEO, no solo en la app: `flutter-sync` puso el transporte en
+  # `lib/nube/transporte_http_sync.dart` y `flutter-licencia` el cliente de
+  # revalidación en `lib/licencia/cliente_licencia_api.dart`. Ambos son Dart
+  # puro, así que no rompen la invariante de arriba.
+  #
+  # RESTRICCIÓN: **dio 5.x**. `^5.7.0` ya lo garantiza (>=5.7.0 <6.0.0). No
+  # subir a 6 sin revisar los interceptores del Bearer y de reintentos.
+  dio: ^5.7.0
+
+  # --- Criptografía del token de licencia (§4) ---
+  # Verificación RSA-2048 PKCS#1 v1.5 + SHA-256 contra la clave pública PEM
+  # embebida, exactamente como docs/LICENSE-TOKEN.md §2.
+  pointycastle: ^3.9.1
+  crypto: ^3.0.6
+  #
+  # `asn1lib` RETIRADO en la pasada final de reconciliación (§4.2).
+  # §4 lo listaba junto a pointycastle, pero NINGÚN archivo lo importa:
+  # `licencia/license_token_validator.dart` parsea el SPKI con un lector DER
+  # propio (`_LectorDer`, ~60 líneas) porque los getters de asn1lib para enteros
+  # y BIT STRING cambiaron entre la 1.0 y la 1.5, y depender de ellos ataba la
+  # verificación de licencias a una versión concreta de un paquete de terceros.
+  # Una dependencia declarada y no importada solo aporta superficie de fallo en
+  # `pub get` y tienta a alguien a "arreglar" el validador para usarla. Si algún
+  # día se prefiere asn1lib, se vuelve a añadir aquí Y se sustituye
+  # `parsearClavePublicaPem`; no antes.
+
+  # --- Utilidades puras ---
+  collection: ^1.19.0
+  meta: ^1.15.0
+  uuid: ^4.5.1 # PK = UUID TEXT, igual que el escritorio (ARQUITECTURA.md §4)
+
+dev_dependencies:
+  lints: ^5.1.0
+  # `package:test`, no `flutter_test`: este paquete se prueba con `dart test`
+  # sin levantar un binding de Flutter. Lo usan las suites ya escritas de
+  # `test/licencia/`, `test/nube/`, `test/datos/`, `test/dominio/` y
+  # `test/rubros/`.
+  test: ^1.25.15
+
+  # OBLIGATORIO para `test/datos/outbox_transaccional_test.dart`: hace
+  # `NativeDatabase.memory()` de `package:drift/native.dart`, y ese constructor
+  # necesita la biblioteca nativa de SQLite en el proceso. En la app la aportan
+  # `sqlite3_flutter_libs` (que NO puede entrar aquí: arrastra Flutter y rompe
+  # la invariante de Dart puro); en `dart test` la aporta `sqlite3`, que se
+  # apoya en el `libsqlite3`/`winsqlite3.dll` del sistema. Sin esta línea el
+  # test no falla con un error de compilación sino al arrancar, con un
+  # "Failed to load dynamic library" que despista.
+  sqlite3: ^2.4.6
+
+  # `drift` ya está en `dependencies` (arriba): las pruebas lo usan desde ahí,
+  # no hace falta repetirlo.
+  build_runner: ^2.4.14
+  drift_dev: ^2.23.1

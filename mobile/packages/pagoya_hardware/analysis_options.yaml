@@ -1,0 +1,4 @@
+# pagoya_hardware — paquete Flutter. Base estricta compartida + flutter_lints.
+include:
+  - package:flutter_lints/flutter.yaml
+  - ../../analysis_options.yaml

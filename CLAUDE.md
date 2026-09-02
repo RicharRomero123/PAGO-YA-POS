@@ -68,11 +68,28 @@ El estado `EstadoLicencia.EstaActivada` (true solo con token auténtico) es lo q
 
 Invócalos con `@nombre` o vía el subagente correspondiente:
 
+### Escritorio y backend
+
 - **lead-architect** — Arquitectura, contratos de API, modularización, seguridad de licencias.
 - **desktop-dev** — Cliente WPF/WinUI, SQLite local, HWID, ESC/POS, MVVM.
 - **ui-ux-designer** — Diseño de interfaz del POS (pantalla de cobro rápido, teclado, UX).
 - **licensing-backend** — API ASP.NET Core, firma RSA, validación HWID, webhooks.
 - **sunat-facturacion** — Motor UBL 2.1, firma digital, CDR, integración SUNAT/PSE.
+
+### App móvil (Flutter)
+
+Trabajan en paralelo sobre `mobile/`. Su contrato compartido —estructura,
+decisiones cerradas y mapa de propiedad de archivos para que no se pisen— es
+[`docs/MOBILE-ARQUITECTURA.md`](docs/MOBILE-ARQUITECTURA.md).
+
+- **mobile-lead** — Arquitectura de la app, contratos Dart, pubspec, arbitraje entre agentes móviles.
+- **flutter-datos** — Dominio, `Dinero`/IGV, SQLite (drift) sobre el mismo esquema, repositorios, outbox, plantillas por rubro.
+- **flutter-licencia** — Validador RSA en Dart, identidad del dispositivo, gate de activación, feature gating.
+- **flutter-sync** — Cliente de `/sync/push` y `/sync/pull`, cursor, LWW, reintentos, estado de nube.
+- **mobile-ux** — Sistema de diseño portado del tema WPF, iconografía, onboarding por rubro, estados de upsell.
+- **flutter-ui** — Pantallas: cobro rápido, caja, inventario, mesas, habitaciones, reportes.
+- **flutter-hardware** — ESC/POS por Bluetooth, escáner con cámara, secure storage, permisos Android/iOS.
+- **backend-seats** — Cambios en `server/` que el móvil necesita: seats de dispositivo, filtro de eco, entidades de sync ampliadas.
 
 ## Convenciones
 

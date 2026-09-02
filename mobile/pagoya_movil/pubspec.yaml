@@ -1,0 +1,84 @@
+name: pagoya_movil
+description: >-
+  PagoYa Móvil — POS de bolsillo para bodegas, restaurantes y hospedajes del
+  Perú. Misma licencia, mismo esquema SQLite y mismo backend que el POS de
+  escritorio.
+version: 1.0.0+1
+publish_to: none
+
+environment:
+  sdk: ^3.5.0
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # --- Paquetes propios ---
+  pagoya_core:
+    path: ../packages/pagoya_core
+  pagoya_hardware:
+    path: ../packages/pagoya_hardware
+
+  # --- Estado (§4: Riverpod 2.x SIN code-gen) ---
+  flutter_riverpod: ^2.6.1
+
+  # --- Navegación (§4: go_router, por los deep links de activación) ---
+  go_router: ^14.6.2
+
+  # --- Base de datos ---
+  # El core define el esquema con drift, pero las libs NATIVAS de SQLite y la
+  # ruta del archivo son cosa de la app: por eso viven aquí y no en el core.
+  drift: ^2.23.1
+  sqlite3_flutter_libs: ^0.5.26
+  path_provider: ^2.1.5
+  path: ^1.9.0
+
+  # --- Red ---
+  dio: ^5.7.0 # mismo 5.x que declara pagoya_core; no divergir
+  # Dispara la sync cuando vuelve la señal.
+  # RESTRICCIÓN DURA: **>= 6**. En la 6.x `onConnectivityChanged` emite
+  # `List<ConnectivityResult>` en vez de un valor suelto, y
+  # `ui/nube/conectividad_flutter.dart` está escrito contra esa firma. Bajar a
+  # 5.x NO da un warning: da un error de tipos y no compila.
+  connectivity_plus: ^6.1.1
+  # Sync en segundo plano. Pedido por flutter-sync (ui/nube/sync_background.dart).
+  # OJO (§ de compatibilidad en pagoya_hardware): Xiaomi/Huawei/Oppo matan
+  # procesos de fondo sin piedad, así que esto es "mejor esfuerzo": nada crítico
+  # puede depender de que corra. La venta ya está en SQLite pase lo que pase.
+  workmanager: ^0.5.2
+
+  # --- Plataforma ---
+  flutter_secure_storage: ^9.2.2
+  share_plus: ^10.1.4
+  # Preferencias no sensibles (cursor de sync, últimas opciones de UI).
+  shared_preferences: ^2.3.3
+
+  # --- Formato peruano (S/ , dd/MM/yyyy) ---
+  intl: ^0.19.0
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.14
+  drift_dev: ^2.23.1
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    # Los MISMOS PNG que el escritorio (docs/MOBILE-ARQUITECTURA.md §1).
+    # Los copia el usuario desde src/PagoYa.Desktop/Assets/Iconos/ — ver
+    # mobile/README.md. Dueño de la carpeta: mobile-ux.
+    #
+    # OJO: si la carpeta no existe, `flutter pub get` falla. Créala antes
+    # (aunque sea con un .gitkeep) o comenta esta línea.
+    - assets/iconos/
+
+  # El esquema SQLite NO es un asset de Flutter: pagoya_core es Dart puro y no
+  # puede declarar assets. Se embebe como constante Dart en
+  # `pagoya_core/lib/datos/esquema_sql.dart` (copia literal de
+  # src/PagoYa.Data/Esquema/esquema.sql). Ver MOBILE-ARQUITECTURA §4.

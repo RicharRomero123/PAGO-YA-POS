@@ -1,0 +1,137 @@
+# Reglas de análisis COMPARTIDAS por los tres paquetes de PagoYa Móvil.
+#
+# Dueño: mobile-lead. Nadie más edita este archivo (ver docs/MOBILE-ARQUITECTURA.md §3).
+# Cada paquete tiene su propio analysis_options.yaml que hace `include` de este,
+# más el paquete de lints que le corresponde (flutter_lints o lints).
+#
+# Filosofía: estricto desde el día 1. Es mucho más barato apretar el analizador
+# ahora, con el proyecto vacío, que pelear 300 warnings dentro de dos semanas.
+
+analyzer:
+  language:
+    # Sin casts implícitos ni `dynamic` colándose por inferencia. Un POS que
+    # maneja plata no puede permitirse `dynamic` silencioso en un total.
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+
+  errors:
+    # --- Elevados a ERROR (rompen el build) ---
+    # Dependencia no declarada en el pubspec: es el mecanismo que hace CUMPLIR
+    # la invariante "pagoya_core nunca importa package:flutter". Como flutter no
+    # está en las dependencias de pagoya_core, cualquier `import
+    # 'package:flutter/...'` allí explota como error de análisis.
+    depend_on_referenced_packages: error
+    missing_required_param: error
+    missing_return: error
+    unused_import: error
+    unused_local_variable: error
+    # `await` olvidado en una escritura a SQLite = venta perdida.
+    unawaited_futures: error
+    # Aritmética monetaria: prohibido comparar/operar `num` sueltos por error.
+    invalid_use_of_visible_for_testing_member: error
+
+    # --- Bajados de tono ---
+    todo: ignore
+    invalid_annotation_target: ignore
+
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.mocks.dart"
+    - "**/generated_plugin_registrant.dart"
+    - "build/**"
+    - ".dart_tool/**"
+
+linter:
+  rules:
+    # --- Corrección ---
+    # Dentro de un mismo paquete se usan imports RELATIVOS; entre paquetes,
+    # `package:`. Mezclar los dos estilos rompe la deduplicación del analizador.
+    - prefer_relative_imports
+    - avoid_dynamic_calls
+    - avoid_slow_async_io
+    - avoid_type_to_string
+    - cancel_subscriptions
+    - close_sinks
+    - comment_references
+    - literal_only_boolean_expressions
+    - no_adjacent_strings_in_list
+    - test_types_in_equals
+    - throw_in_finally
+    - unnecessary_statements
+    - collection_methods_unrelated_type
+    - unrelated_type_equality_checks
+    - use_build_context_synchronously
+    - valid_regexps
+
+    # --- Estilo / legibilidad ---
+    - always_declare_return_types
+    - annotate_overrides
+    - avoid_bool_literals_in_conditional_expressions
+    - avoid_empty_else
+    - avoid_escaping_inner_quotes
+    - avoid_field_initializers_in_const_classes
+    - avoid_init_to_null
+    - avoid_null_checks_in_equality_operators
+    - avoid_positional_boolean_parameters
+    - avoid_redundant_argument_values
+    - avoid_unused_constructor_parameters
+    - avoid_void_async
+    - await_only_futures
+    - camel_case_types
+    - cascade_invocations
+    - constant_identifier_names
+    - directives_ordering
+    - empty_catches
+    - eol_at_end_of_file
+    - exhaustive_cases
+    - file_names
+    - implementation_imports
+    - join_return_with_assignment
+    - library_names
+    - non_constant_identifier_names
+    - null_closures
+    - omit_local_variable_types
+    - only_throw_errors
+    - package_prefixed_library_names
+    - prefer_const_constructors
+    - prefer_const_constructors_in_immutables
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
+    - prefer_final_fields
+    - prefer_final_in_for_each
+    - prefer_final_locals
+    - prefer_if_null_operators
+    - prefer_interpolation_to_compose_strings
+    - prefer_is_empty
+    - prefer_is_not_empty
+    - prefer_null_aware_operators
+    - prefer_single_quotes
+    - prefer_typing_uninitialized_variables
+    - provide_deprecation_message
+    - recursive_getters
+    - sized_box_for_whitespace
+    - sort_child_properties_last
+    - sort_constructors_first
+    - type_annotate_public_apis
+    - unnecessary_await_in_return
+    - unnecessary_brace_in_string_interps
+    - unnecessary_lambdas
+    - unnecessary_late
+    - unnecessary_new
+    - unnecessary_null_aware_assignments
+    - unnecessary_null_checks
+    - unnecessary_parenthesis
+    - unnecessary_this
+    - use_if_null_to_convert_nulls_to_bools
+    - use_is_even_rather_than_modulo
+    - use_named_constants
+    - use_raw_strings
+    - use_string_buffers
+    - use_super_parameters
+
+# NOTA para quien corra `flutter analyze` la primera vez: si alguna de estas
+# reglas fue retirada del SDK de Dart instalado, el analizador emite un
+# INFO ("removed lint") pero NO falla. Reporta a mobile-lead cuáles salieron y
+# se limpian de un solo golpe aquí; no las borres en tu paquete.

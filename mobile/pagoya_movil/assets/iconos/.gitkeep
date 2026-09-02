@@ -1,0 +1,4 @@
+Destino de los PNG de iconografia de PagoYa Movil.
+Fuente primaria: iconos-app-mobil/ (raiz del repo).
+Huecos: Iconos-POS/ y src/PagoYa.Desktop/Assets/Iconos/.
+El mapeo origen->destino vive en lib/ui/tema/iconos_pos.dart.

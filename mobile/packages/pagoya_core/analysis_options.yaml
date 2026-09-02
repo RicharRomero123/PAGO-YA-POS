@@ -1,0 +1,6 @@
+# pagoya_core — Dart PURO. Usa `lints` (no `flutter_lints`) porque este paquete
+# no puede depender de Flutter. La base estricta compartida la pone mobile-lead
+# en mobile/analysis_options.yaml; no la dupliques aquí.
+include:
+  - package:lints/recommended.yaml
+  - ../../analysis_options.yaml

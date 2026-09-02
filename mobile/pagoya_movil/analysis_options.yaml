@@ -1,0 +1,14 @@
+# pagoya_movil — app Flutter. Base estricta compartida + flutter_lints.
+include:
+  - package:flutter_lints/flutter.yaml
+  - ../analysis_options.yaml
+
+analyzer:
+  exclude:
+    # Generados por `flutter create` / plugins.
+    - "android/**"
+    - "ios/**"
+    - "linux/**"
+    - "macos/**"
+    - "windows/**"
+    - "web/**"
