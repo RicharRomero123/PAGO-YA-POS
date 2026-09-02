@@ -1,0 +1,80 @@
+{
+  "descripcion": "Paridad del cálculo del vuelto. Referencia: CobroRapidoViewModel.Vuelto y .VueltoEsNegativo.",
+  "formula": {
+    "vuelto": "paga_con > total ? paga_con - total : 0   (NUNCA negativo: si el efectivo no alcanza se muestra 0)",
+    "falta_efectivo": "paga_con > 0 && paga_con < total  (solo tiñe el aviso; con paga_con = 0 no avisa nada porque el cajero aún no digitó)"
+  },
+  "casos": [
+    {
+      "nombre": "billete de 20 por un carrito de 12.70",
+      "paga_con": 20.00,
+      "total": 12.70,
+      "vuelto": 7.30,
+      "falta_efectivo": false
+    },
+    {
+      "nombre": "pago exacto: no hay vuelto ni aviso",
+      "paga_con": 12.70,
+      "total": 12.70,
+      "vuelto": 0.00,
+      "falta_efectivo": false
+    },
+    {
+      "nombre": "no alcanza: vuelto 0 y aviso encendido",
+      "paga_con": 10.00,
+      "total": 12.70,
+      "vuelto": 0.00,
+      "falta_efectivo": true
+    },
+    {
+      "nombre": "aún no digita: sin aviso",
+      "paga_con": 0.00,
+      "total": 12.70,
+      "vuelto": 0.00,
+      "falta_efectivo": false
+    },
+    {
+      "nombre": "vuelto de un céntimo",
+      "paga_con": 100.00,
+      "total": 99.99,
+      "vuelto": 0.01,
+      "falta_efectivo": false
+    },
+    {
+      "nombre": "falta un céntimo",
+      "paga_con": 99.99,
+      "total": 100.00,
+      "vuelto": 0.00,
+      "falta_efectivo": true
+    },
+    {
+      "nombre": "billete de 50 por un pan",
+      "paga_con": 50.00,
+      "total": 0.30,
+      "vuelto": 49.70,
+      "falta_efectivo": false
+    },
+    {
+      "nombre": "carrito vacío con efectivo digitado",
+      "paga_con": 5.00,
+      "total": 0.00,
+      "vuelto": 5.00,
+      "falta_efectivo": false
+    }
+  ],
+  "parseo_monto": {
+    "descripcion": "Lectura del texto del numpad 'Paga con'. Referencia: decimal.TryParse(value, NumberStyles.Number, InvariantCulture) — punto decimal, y 0 si no parsea (nunca lanza).",
+    "casos": [
+      { "texto": "", "valor": 0.00 },
+      { "texto": "0", "valor": 0.00 },
+      { "texto": "20", "valor": 20.00 },
+      { "texto": "20.", "valor": 20.00 },
+      { "texto": "20.5", "valor": 20.50 },
+      { "texto": "20.50", "valor": 20.50 },
+      { "texto": "0.30", "valor": 0.30 },
+      { "texto": ".5", "valor": 0.50 },
+      { "texto": "abc", "valor": 0.00 },
+      { "texto": "1.2.3", "valor": 0.00 }
+    ]
+  }
+}

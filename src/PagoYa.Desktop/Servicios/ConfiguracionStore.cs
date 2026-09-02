@@ -62,6 +62,31 @@ public sealed class ConfiguracionNegocio
     /// </summary>
     public string? SyncUrlBase { get; set; }
 
+    /// <summary>
+    /// FUENTE ÚNICA de la identidad de sincronización de este equipo.
+    ///
+    /// El mismo valor tiene que aparecer en dos sitios o la sincronización falla
+    /// en silencio:
+    ///   * en la columna <c>origen_caja_id</c> de cada fila de negocio y de cada
+    ///     evento de <c>outbox_sync</c> que sube esta caja, y
+    ///   * en el <c>?origen=</c> del <c>GET /sync/pull</c>
+    ///     (<see cref="PagoYa.Cloud.OpcionesSync.OrigenCajaId"/>), que es lo que
+    ///     activa el filtro de eco del backend (<c>server/README.md §7.1</c>).
+    /// Si difieren, el server nos devuelve nuestros propios eventos y la caja se
+    /// re-aplica sus ventas, con riesgo de que un snapshot viejo pise uno nuevo.
+    ///
+    /// <b>No se genera aquí.</b> El prefijo (<c>C01</c>..<c>C99</c> para
+    /// escritorio) lo asigna el SERVER al vincular el dispositivo y lo devuelve
+    /// como <c>devicePrefix</c>: es el único que ve todos los dispositivos de la
+    /// licencia y puede garantizar unicidad. El cliente solo lo persiste aquí.
+    /// Los prefijos de asientos revocados no se reutilizan.
+    ///
+    /// Vacío = equipo aún no vinculado: no se manda <c>?origen=</c> y el backend
+    /// no filtra (comportamiento anterior, compatible). Las instalaciones
+    /// antiguas que ya tengan su propio <c>origen_caja_id</c> lo conservan.
+    /// </summary>
+    public string OrigenCajaId { get; set; } = "";
+
     /// <summary>Columnas de texto según el ancho de papel (58mm≈32, 80mm≈42).</summary>
     public int ColumnasTicket => AnchoPapelMm <= 58 ? 32 : 42;
 }

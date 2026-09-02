@@ -19,7 +19,11 @@ public sealed class ServicioAdmin
 
     public async Task<IReadOnlyList<LicenciaResumen>> ListarAsync(string? estado, int limite, CancellationToken ct)
     {
-        IQueryable<Licencia> q = _db.Licencias.AsNoTracking().OrderByDescending(l => l.CreadoUtc);
+        // Include de Dispositivos: el resumen reporta el consumo de asientos
+        // (DispositivosActivos/MaxDispositivos) que el panel muestra en la lista.
+        IQueryable<Licencia> q = _db.Licencias.AsNoTracking()
+            .Include(l => l.Dispositivos)
+            .OrderByDescending(l => l.CreadoUtc);
 
         if (!string.IsNullOrWhiteSpace(estado) && Enum.TryParse<EstadoLicencia>(estado, true, out var e))
             q = q.Where(l => l.Estado == e);
@@ -28,10 +32,13 @@ public sealed class ServicioAdmin
         return items.Select(LicenciaResumen.De).ToList();
     }
 
+    /// <summary>Detalle de una licencia, incluyendo sus dispositivos (asientos).</summary>
     public async Task<LicenciaResumen?> ObtenerAsync(Guid id, CancellationToken ct)
     {
-        var lic = await _db.Licencias.AsNoTracking().FirstOrDefaultAsync(l => l.Id == id, ct);
-        return lic is null ? null : LicenciaResumen.De(lic);
+        var lic = await _db.Licencias.AsNoTracking()
+            .Include(l => l.Dispositivos)
+            .FirstOrDefaultAsync(l => l.Id == id, ct);
+        return lic is null ? null : LicenciaResumen.ConDispositivos(lic);
     }
 
     public async Task<Resultado<LicenciaResumen>> SuspenderAsync(Guid id, string? motivo, CancellationToken ct)
@@ -43,12 +50,14 @@ public sealed class ServicioAdmin
     private async Task<Resultado<LicenciaResumen>> CambiarEstadoAsync(
         Guid id, EstadoLicencia nuevo, string accion, string detalle, CancellationToken ct)
     {
-        var lic = await _db.Licencias.FirstOrDefaultAsync(l => l.Id == id, ct);
+        var lic = await _db.Licencias.Include(l => l.Dispositivos).FirstOrDefaultAsync(l => l.Id == id, ct);
         if (lic is null)
-            return Resultado<LicenciaResumen>.Falla("Licencia no encontrada.", 404);
+            return Resultado<LicenciaResumen>.Falla(
+                "Licencia no encontrada.", 404, CodigosError.LicenciaNoEncontrada);
 
         if (lic.Estado == EstadoLicencia.Revocada)
-            return Resultado<LicenciaResumen>.Falla("La licencia está revocada; no se puede cambiar.", 409);
+            return Resultado<LicenciaResumen>.Falla(
+                "La licencia está revocada; no se puede cambiar.", 409, CodigosError.LicenciaRevocada);
 
         lic.Estado = nuevo;
         lic.ActualizadoUtc = DateTime.UtcNow;

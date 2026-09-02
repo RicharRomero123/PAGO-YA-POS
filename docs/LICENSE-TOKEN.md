@@ -41,9 +41,40 @@ RSA contra la clave pública embebida.
 | `iat`        | number   | Sí          | Issued-at, Unix epoch en segundos (UTC). |
 | `exp`        | number   | Sí          | Expiración, Unix epoch (UTC). `0` = perpetua (típico de Base). |
 | `sub`        | string   | No          | RUC/identificador del negocio (informativo). |
+| `device_id`  | string   | No          | Id del **asiento** (fila `Devices`) al que se emitió el token. Ver §4.1. |
+| `device_prefix` | string | No         | Prefijo de dispositivo asignado por el server (`C01`, `M01`). Ver §4.1. |
 
 \* `hwid` puede ir vacío si el modelo comercial no ata la licencia a un equipo,
 pero para los tiers de suscripción se recomienda vincularlo (anti-reuso).
+En un token de asiento (`POST /devices`), `hwid` es la huella del **dispositivo
+secundario** (el id estable del móvil), no el HWID de la PC: cada equipo valida
+contra su propia huella.
+
+### 4.1 Claims de dispositivo (aditivos — modelo de asientos)
+
+Introducidos con el modelo de **seats** (`POST /devices`, ver `server/README.md §6`)
+para que el móvil pueda vincularse **sin desvincular la PC**.
+
+| Claim | Quién lo emite | Para qué sirve |
+|---|---|---|
+| `device_id` | `/activate`, `/validate` y `/devices` (desde esta versión) | Identifica el asiento. El backend lo usa para hacer efectiva la **revocación** en los endpoints online (`/sync/*` responde `403` si el asiento fue revocado). Es el `{id}` de `DELETE /devices/{id}`. |
+| `device_prefix` | igual | Prefijo de correlativos y valor recomendado de `origen_caja_id`: `C01-000123` en la PC, `M01-000123` en el móvil. Lo asigna el server (único por licencia). |
+
+**Ruta de compatibilidad (obligatoria — hay clientes en campo):**
+
+1. Ambos claims son **opcionales**. El emisor serializa con
+   `JsonIgnoreCondition.WhenWritingNull`, así que **se omiten del JSON** cuando no
+   hay dispositivo: un token sin asiento es byte a byte el de siempre.
+2. Los tokens **ya emitidos** no cambian ni se invalidan: la clave, el algoritmo y
+   el resto de claims son idénticos. No hace falta re-emitir nada.
+3. Los validadores del cliente (`LicenseTokenValidator` en C#, su equivalente Dart)
+   deserializan **ignorando propiedades desconocidas**, de modo que un cliente
+   antiguo acepta sin cambios un token que sí traiga los claims nuevos.
+4. Ningún cliente debe **exigir** estos claims para operar: su ausencia significa
+   "token anterior al modelo de seats", no token inválido.
+
+Regla general para futuras extensiones: **solo claims opcionales y omitidos si son
+nulos**. Nunca renombrar ni volver obligatorio un claim existente.
 
 ### Ejemplo de payload (antes de firmar)
 
@@ -55,7 +86,9 @@ pero para los tiers de suscripción se recomienda vincularlo (anti-reuso).
   "hwid": "9F3A...HASH...",
   "iat": 1755820800,
   "exp": 1758499200,
-  "sub": "20512345678"
+  "sub": "20512345678",
+  "device_id": "6f1c2f7a-9b21-4a0e-9d6e-9a2b7f0c1d33",
+  "device_prefix": "M01"
 }
 ```
 

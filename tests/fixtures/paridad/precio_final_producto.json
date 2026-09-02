@@ -1,0 +1,94 @@
+{
+  "descripcion": "Paridad del precio efectivo de un producto con descuento. Referencia: Producto.PrecioFinal y Producto.PorcentajeDescuento (PagoYa.Core/Entidades/Producto.cs).",
+  "formula": {
+    "porcentaje": "decimal.Round(precio_venta * (1 - Clamp(descuento_valor, 0, 100) / 100), 2)  con MidpointRounding.ToEven",
+    "oferta": "descuento_valor > 0 && descuento_valor < precio_venta ? Round(descuento_valor, 2) : precio_venta",
+    "ninguno": "precio_venta",
+    "porcentaje_descuento": "(int)decimal.Round((1 - precio_final / precio_venta) * 100, 0), 0 si no hay descuento"
+  },
+  "nota_redondeo": "Los casos 3.55 y 3.45 al 50 % son los que separan el redondeo bancario del común: 1.775 -> 1.78 (sube al par) y 1.725 -> 1.72 (baja al par). Si el móvil los calcula con double, 1.775 se representa como 1.7749999... y daría 1.77: por eso el cálculo va con enteros.",
+  "tipos_descuento": { "ninguno": 0, "porcentaje": 1, "oferta": 2 },
+  "casos": [
+    {
+      "nombre": "sin descuento",
+      "precio_venta": 10.00,
+      "tipo_descuento": 0,
+      "descuento_valor": 0.00,
+      "precio_final": 10.00,
+      "tiene_descuento": false,
+      "porcentaje_descuento": 0
+    },
+    {
+      "nombre": "15 % exacto",
+      "precio_venta": 10.00,
+      "tipo_descuento": 1,
+      "descuento_valor": 15.00,
+      "precio_final": 8.50,
+      "tiene_descuento": true,
+      "porcentaje_descuento": 15
+    },
+    {
+      "nombre": "empate bancario que SUBE (1.775 -> 1.78)",
+      "precio_venta": 3.55,
+      "tipo_descuento": 1,
+      "descuento_valor": 50.00,
+      "precio_final": 1.78,
+      "tiene_descuento": true,
+      "porcentaje_descuento": 50
+    },
+    {
+      "nombre": "empate bancario que BAJA (1.725 -> 1.72)",
+      "precio_venta": 3.45,
+      "tipo_descuento": 1,
+      "descuento_valor": 50.00,
+      "precio_final": 1.72,
+      "tiene_descuento": true,
+      "porcentaje_descuento": 50
+    },
+    {
+      "nombre": "porcentaje mayor a 100 se recorta a 100",
+      "precio_venta": 10.00,
+      "tipo_descuento": 1,
+      "descuento_valor": 150.00,
+      "precio_final": 0.00,
+      "tiene_descuento": true,
+      "porcentaje_descuento": 100
+    },
+    {
+      "nombre": "porcentaje negativo se recorta a 0",
+      "precio_venta": 10.00,
+      "tipo_descuento": 1,
+      "descuento_valor": -5.00,
+      "precio_final": 10.00,
+      "tiene_descuento": false,
+      "porcentaje_descuento": 0
+    },
+    {
+      "nombre": "precio de oferta válido",
+      "precio_venta": 10.00,
+      "tipo_descuento": 2,
+      "descuento_valor": 7.90,
+      "precio_final": 7.90,
+      "tiene_descuento": true,
+      "porcentaje_descuento": 21
+    },
+    {
+      "nombre": "oferta mayor o igual al precio normal: se ignora",
+      "precio_venta": 10.00,
+      "tipo_descuento": 2,
+      "descuento_valor": 12.00,
+      "precio_final": 10.00,
+      "tiene_descuento": false,
+      "porcentaje_descuento": 0
+    },
+    {
+      "nombre": "oferta en cero: se ignora",
+      "precio_venta": 10.00,
+      "tipo_descuento": 2,
+      "descuento_valor": 0.00,
+      "precio_final": 10.00,
+      "tiene_descuento": false,
+      "porcentaje_descuento": 0
+    }
+  ]
+}

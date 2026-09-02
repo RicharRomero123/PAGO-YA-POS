@@ -52,6 +52,18 @@ public sealed class CloudSyncService : ISyncService
         {
             throw;
         }
+        catch (SyncTransporteException ex)
+        {
+            // Fallo con contrato: propaga el `codigo` del backend para que la UI
+            // ramifique por él (upsell / volver a vincular / renovar) en vez de
+            // leer el texto del mensaje.
+            return new ResultadoSync
+            {
+                Exito = false,
+                Mensaje = $"Error de sincronización: {ex.Message}",
+                CodigoError = ex.Codigo
+            };
+        }
         catch (Exception ex)
         {
             return new ResultadoSync { Exito = false, Mensaje = $"Error de sincronización: {ex.Message}" };
@@ -75,7 +87,7 @@ public sealed class CloudSyncService : ISyncService
                 // Fallo de transporte: cuenta el intento y corta (se reintenta luego).
                 await _outbox.RegistrarFalloAsync(
                     lote.Select(e => e.Id).ToArray(), _opciones.MaxIntentos, ct);
-                throw new SyncTransporteException(res.Error ?? "fallo de transporte en push");
+                throw new SyncTransporteException(res.Error ?? "fallo de transporte en push", res.Codigo);
             }
 
             var aceptados = new HashSet<Guid>(res.AceptadosIds);
@@ -111,8 +123,18 @@ public sealed class CloudSyncService : ISyncService
     }
 }
 
-/// <summary>Fallo de transporte durante el push (se convierte en ResultadoSync fallido).</summary>
+/// <summary>
+/// Fallo de transporte durante el push o el pull (se convierte en un
+/// <see cref="ResultadoSync"/> fallido).
+/// </summary>
 public sealed class SyncTransporteException : Exception
 {
-    public SyncTransporteException(string mensaje) : base(mensaje) { }
+    public SyncTransporteException(string mensaje, string? codigo = null) : base(mensaje)
+        => Codigo = codigo;
+
+    /// <summary>
+    /// Código estable del backend (<see cref="CodigosErrorSync"/>), si vino.
+    /// Null en fallos de red o backends anteriores al catálogo de códigos.
+    /// </summary>
+    public string? Codigo { get; }
 }

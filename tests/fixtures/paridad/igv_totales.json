@@ -1,0 +1,122 @@
+{
+  "descripcion": "Paridad del cálculo de IGV y totales entre el POS de escritorio (C#) y PagoYa Móvil (Dart). Fórmula de referencia: CobroRapidoViewModel.RecalcularTotales() — el precio YA incluye IGV, el total se suma de las líneas y el subtotal se DESAGREGA hacia atrás.",
+  "formula": {
+    "tasa_igv": 0.18,
+    "total": "suma de (precio_unitario * cantidad) de cada línea, sin redondeo (exacto en céntimos)",
+    "sub_total": "decimal.Round(total / 1.18, 2) con MidpointRounding.ToEven (redondeo bancario)",
+    "igv": "decimal.Round(total - sub_total, 2)  — NO se calcula como total*0.18/1.18, para que sub_total + igv == total siempre"
+  },
+  "nota_para_el_lado_dart": "Los importes se comparan como céntimos enteros. C# serializa decimal conservando la escala (12.70) y Dart serializa double (12.7): son el mismo valor, compárense numéricamente y nunca como texto.",
+  "casos": [
+    {
+      "nombre": "cero: carrito vacío",
+      "total": 0.00,
+      "sub_total": 0.00,
+      "igv": 0.00
+    },
+    {
+      "nombre": "céntimo suelto: el IGV redondea a cero",
+      "total": 0.01,
+      "sub_total": 0.01,
+      "igv": 0.00
+    },
+    {
+      "nombre": "pan francés (und)",
+      "total": 0.30,
+      "sub_total": 0.25,
+      "igv": 0.05
+    },
+    {
+      "nombre": "división exacta: 0.59 / 1.18 = 0.50 sin resto",
+      "total": 0.59,
+      "sub_total": 0.50,
+      "igv": 0.09
+    },
+    {
+      "nombre": "división exacta: 1.18 / 1.18 = 1.00",
+      "total": 1.18,
+      "sub_total": 1.00,
+      "igv": 0.18
+    },
+    {
+      "nombre": "división exacta: 2.36 / 1.18 = 2.00",
+      "total": 2.36,
+      "sub_total": 2.00,
+      "igv": 0.36
+    },
+    {
+      "nombre": "Inca Kola 500ml",
+      "total": 3.50,
+      "sub_total": 2.97,
+      "igv": 0.53
+    },
+    {
+      "nombre": "billete de 10",
+      "total": 10.00,
+      "sub_total": 8.47,
+      "igv": 1.53
+    },
+    {
+      "nombre": "redondeo hacia arriba: 9.99 / 1.18 = 8.4661",
+      "total": 9.99,
+      "sub_total": 8.47,
+      "igv": 1.52
+    },
+    {
+      "nombre": "carrito mixto de bodega (2x3.50 + 5x0.30 + 1x4.20)",
+      "total": 12.70,
+      "sub_total": 10.76,
+      "igv": 1.94
+    },
+    {
+      "nombre": "ceviche de pescado",
+      "total": 22.00,
+      "sub_total": 18.64,
+      "igv": 3.36
+    },
+    {
+      "nombre": "3 cervezas de 7.50",
+      "total": 22.50,
+      "sub_total": 19.07,
+      "igv": 3.43
+    },
+    {
+      "nombre": "pollo a la brasa entero",
+      "total": 55.00,
+      "sub_total": 46.61,
+      "igv": 8.39
+    },
+    {
+      "nombre": "monto alto: taladro percutor",
+      "total": 150.00,
+      "sub_total": 127.12,
+      "igv": 22.88
+    }
+  ],
+  "carritos": [
+    {
+      "nombre": "carrito mixto de bodega",
+      "lineas": [
+        { "nombre": "Inca Kola 500ml", "precio_unitario": 3.50, "cantidad": 2, "importe": 7.00 },
+        { "nombre": "Pan francés (und)", "precio_unitario": 0.30, "cantidad": 5, "importe": 1.50 },
+        { "nombre": "Leche Gloria tarro", "precio_unitario": 4.20, "cantidad": 1, "importe": 4.20 }
+      ],
+      "cantidad_items": 8,
+      "total": 12.70,
+      "sub_total": 10.76,
+      "igv": 1.94
+    },
+    {
+      "nombre": "comanda de restaurante",
+      "lineas": [
+        { "nombre": "Ceviche de pescado", "precio_unitario": 22.00, "cantidad": 1, "importe": 22.00 },
+        { "nombre": "Lomo saltado", "precio_unitario": 28.00, "cantidad": 2, "importe": 56.00 },
+        { "nombre": "Chicha morada", "precio_unitario": 4.00, "cantidad": 3, "importe": 12.00 }
+      ],
+      "cantidad_items": 6,
+      "total": 90.00,
+      "sub_total": 76.27,
+      "igv": 13.73
+    }
+  ]
+}
