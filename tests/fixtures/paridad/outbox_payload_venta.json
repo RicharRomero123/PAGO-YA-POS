@@ -1,0 +1,163 @@
+{
+  "descripcion": "Paridad del payload que se escribe en outbox_sync.payload_json para una venta. Referencia: OutboxHelper.RegistrarAsync + JsonSerializer.Serialize(venta) con las opciones POR DEFECTO de System.Text.Json.",
+  "reglas_del_formato": {
+    "nombres": "PascalCase. System.Text.Json no aplica ninguna política de nombres por defecto, y al DESERIALIZAR es case-sensitive: si el móvil emitiera camelCase, OutboxStore de la PC construiría una venta con todos los campos en su valor por omisión (una venta de S/ 0).",
+    "enums": "números, no texto (no hay JsonStringEnumConverter registrado)",
+    "guid": "string en formato D minúsculas con guiones",
+    "fechas_utc": "ISO-8601 round-trip con sufijo Z (CreadoUtc, ActualizadoUtc)",
+    "fechas_locales": "ISO-8601 round-trip con desfase horario (FechaHora: hora local del negocio, DateTime.Now en C#)",
+    "nulos": "se emiten como null (WriteIndented=false es la única opción que cambia el escritorio)",
+    "orden_de_claves": "NO es significativo. System.Text.Json y Dart no garantizan el mismo orden; compárense los objetos parseados, nunca las cadenas.",
+    "decimales": "C# serializa decimal conservando la escala (7.00) y Dart serializa double (7.0). Es el mismo valor: compárese numéricamente."
+  },
+  "entrada": {
+    "id": "11111111-1111-4111-8111-111111111111",
+    "numero": "M01-000123",
+    "caja_id": "22222222-2222-4222-8222-222222222222",
+    "fecha_hora_local": "2026-09-02T14:30:05.1234560-05:00",
+    "metodo_pago": 0,
+    "estado": 0,
+    "sub_total": 10.76,
+    "igv": 1.94,
+    "total": 12.70,
+    "monto_recibido": 20.00,
+    "comprobante_id": null,
+    "origen_caja_id": "M01",
+    "creado_utc": "2026-09-02T19:30:05.1234560Z",
+    "actualizado_utc": "2026-09-02T19:30:05.1234560Z",
+    "detalles": [
+      {
+        "id": "33333333-3333-4333-8333-333333333331",
+        "producto_id": "44444444-4444-4444-8444-444444444441",
+        "descripcion_producto": "Inca Kola 500ml",
+        "cantidad": 2,
+        "precio_unitario": 3.50,
+        "descuento": 0.00,
+        "importe": 7.00
+      },
+      {
+        "id": "33333333-3333-4333-8333-333333333332",
+        "producto_id": "44444444-4444-4444-8444-444444444442",
+        "descripcion_producto": "Pan francés (und)",
+        "cantidad": 5,
+        "precio_unitario": 0.30,
+        "descuento": 0.00,
+        "importe": 1.50
+      },
+      {
+        "id": "33333333-3333-4333-8333-333333333333",
+        "producto_id": "44444444-4444-4444-8444-444444444443",
+        "descripcion_producto": "Leche Gloria tarro",
+        "cantidad": 1,
+        "precio_unitario": 4.20,
+        "descuento": 0.00,
+        "importe": 4.20
+      }
+    ]
+  },
+  "fila_outbox_esperada": {
+    "entidad": "venta",
+    "entidad_id": "11111111-1111-4111-8111-111111111111",
+    "operacion": "INSERT",
+    "estado": 0,
+    "intentos": 0,
+    "origen_caja_id": "M01",
+    "enviado_utc": null
+  },
+  "payload_esperado": {
+    "Id": "11111111-1111-4111-8111-111111111111",
+    "CreadoUtc": "2026-09-02T19:30:05.1234560Z",
+    "ActualizadoUtc": "2026-09-02T19:30:05.1234560Z",
+    "OrigenCajaId": "M01",
+    "Numero": "M01-000123",
+    "CajaId": "22222222-2222-4222-8222-222222222222",
+    "FechaHora": "2026-09-02T14:30:05.1234560-05:00",
+    "MetodoPago": 0,
+    "Estado": 0,
+    "SubTotal": 10.76,
+    "Igv": 1.94,
+    "Total": 12.7,
+    "MontoRecibido": 20.0,
+    "ComprobanteId": null,
+    "Detalles": [
+      {
+        "Id": "33333333-3333-4333-8333-333333333331",
+        "CreadoUtc": "2026-09-02T19:30:05.1234560Z",
+        "ActualizadoUtc": "2026-09-02T19:30:05.1234560Z",
+        "OrigenCajaId": "M01",
+        "VentaId": "11111111-1111-4111-8111-111111111111",
+        "ProductoId": "44444444-4444-4444-8444-444444444441",
+        "DescripcionProducto": "Inca Kola 500ml",
+        "Cantidad": 2.0,
+        "PrecioUnitario": 3.5,
+        "Descuento": 0.0,
+        "Importe": 7.0
+      },
+      {
+        "Id": "33333333-3333-4333-8333-333333333332",
+        "CreadoUtc": "2026-09-02T19:30:05.1234560Z",
+        "ActualizadoUtc": "2026-09-02T19:30:05.1234560Z",
+        "OrigenCajaId": "M01",
+        "VentaId": "11111111-1111-4111-8111-111111111111",
+        "ProductoId": "44444444-4444-4444-8444-444444444442",
+        "DescripcionProducto": "Pan francés (und)",
+        "Cantidad": 5.0,
+        "PrecioUnitario": 0.3,
+        "Descuento": 0.0,
+        "Importe": 1.5
+      },
+      {
+        "Id": "33333333-3333-4333-8333-333333333333",
+        "CreadoUtc": "2026-09-02T19:30:05.1234560Z",
+        "ActualizadoUtc": "2026-09-02T19:30:05.1234560Z",
+        "OrigenCajaId": "M01",
+        "VentaId": "11111111-1111-4111-8111-111111111111",
+        "ProductoId": "44444444-4444-4444-8444-444444444443",
+        "DescripcionProducto": "Leche Gloria tarro",
+        "Cantidad": 1.0,
+        "PrecioUnitario": 4.2,
+        "Descuento": 0.0,
+        "Importe": 4.2
+      }
+    ]
+  },
+  "anulacion": {
+    "descripcion": "El evento de anulación NO lleva la venta completa: el escritorio lo emite con un tipo anónimo `new { id, estado }`, y System.Text.Json respeta esos nombres tal cual. Por eso estas dos claves van en MINÚSCULAS, a diferencia del resto de payloads. AplicarEstadoVentaAsync las lee con LeerEntero(payload, \"estado\").",
+    "entidad": "venta",
+    "operacion": "UPDATE",
+    "payload_esperado": {
+      "id": "11111111-1111-4111-8111-111111111111",
+      "estado": 1
+    }
+  },
+  "baja_producto": {
+    "descripcion": "Misma regla para la baja lógica de producto: `new { id }` en minúsculas.",
+    "entidad": "producto",
+    "operacion": "DELETE",
+    "payload_esperado": {
+      "id": "44444444-4444-4444-8444-444444444441"
+    }
+  },
+  "catalogo_entidades": {
+    "descripcion": "Catálogo CERRADO de outbox_sync.entidad, idéntico en PC, móvil y backend (acordado con backend-seats). Un nombre fuera de esta lista se almacena pero el servidor lo reporta como entidad desconocida y no se aplica en el otro dispositivo.",
+    "valores": [
+      "producto",
+      "venta",
+      "caja",
+      "movimiento_caja",
+      "inventario",
+      "mesa",
+      "pedido",
+      "pedido_linea",
+      "habitacion",
+      "estadia_habitacion"
+    ],
+    "aplicadas_hoy_por_el_escritorio": [
+      "producto",
+      "venta",
+      "caja",
+      "movimiento_caja",
+      "inventario"
+    ]
+  }
+}

@@ -137,41 +137,73 @@ async Task<bool> EsAdminAsync(HttpContext ctx, ServicioAuthAdmin auth)
     return await auth.ValidarSesionAsync(token, ctx.RequestAborted);
 }
 
-IResult NoAutorizado() => Results.Json(new ErrorResponse("Sesión de administrador inválida o ausente."), statusCode: 401);
+IResult NoAutorizado() => Results.Json(
+    new ErrorResponse("Sesión de administrador inválida o ausente.", CodigosError.NoAutorizado), statusCode: 401);
 
 static IResult DesdeResultado<T>(Resultado<T> r) =>
     r.Ok
         ? Results.Ok(r.Valor)
-        : Results.Json(new ErrorResponse(r.Error ?? "Error"), statusCode: r.Http);
+        : Results.Json(new ErrorResponse(r.Error ?? "Error", r.Codigo), statusCode: r.Http);
 
 static string? Ip(HttpContext ctx) => ctx.Connection.RemoteIpAddress?.ToString();
 
 // Autentica una petición de sync por el token de licencia (Bearer). Exige firma
-// válida, no expirado y flag "cloud_sync". Devuelve la licencia (tenant) del token.
-static bool AutenticarSync(HttpContext ctx, VerificadorToken verificador, out Guid licenciaId, out IResult? error)
+// válida, no expirado y flag "cloud_sync". Devuelve la licencia (tenant) del token
+// y, si el token es de un asiento secundario, su device_id (claim aditivo).
+static bool AutenticarSync(HttpContext ctx, VerificadorToken verificador,
+    out Guid licenciaId, out Guid? dispositivoId, out string? prefijoToken, out IResult? error)
 {
     licenciaId = Guid.Empty;
+    dispositivoId = null;
+    prefijoToken = null;
     error = null;
 
     var auth = ctx.Request.Headers.Authorization.ToString();
     var token = auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase) ? auth[7..].Trim() : auth.Trim();
 
-    if (!verificador.TryVerificar(token, out var payload, out var motivo) || payload is null)
+    if (!verificador.TryVerificar(token, out var payload, out var motivo, out var codigo) || payload is null)
     {
-        error = Results.Json(new ErrorResponse(motivo ?? "Token inválido."), statusCode: 401);
+        error = Results.Json(
+            new ErrorResponse(motivo ?? "Token inválido.", codigo ?? CodigosError.TokenInvalido), statusCode: 401);
         return false;
     }
     if (!VerificadorToken.ExigeFeature(payload, "cloud_sync"))
     {
-        error = Results.Json(new ErrorResponse("La licencia no habilita la sincronización en la nube."), statusCode: 403);
+        // 403 "de upsell": la licencia es válida pero el tier no incluye la nube.
+        error = Results.Json(
+            new ErrorResponse("La licencia no habilita la sincronización en la nube.",
+                CodigosError.SinFlagCloudSync), statusCode: 403);
         return false;
     }
     if (!Guid.TryParse(payload.LicenseId, out licenciaId))
     {
-        error = Results.Json(new ErrorResponse("El token no identifica una licencia válida."), statusCode: 401);
+        error = Results.Json(
+            new ErrorResponse("El token no identifica una licencia válida.",
+                CodigosError.LicenciaNoIdentificada), statusCode: 401);
         return false;
     }
+
+    // Claims aditivos: sólo los traen los tokens de asiento emitidos por /devices.
+    if (Guid.TryParse(payload.DeviceId, out var devId)) dispositivoId = devId;
+    prefijoToken = string.IsNullOrWhiteSpace(payload.DevicePrefix) ? null : payload.DevicePrefix.Trim();
+
     return true;
+}
+
+// Enforcement online de la revocación de asientos: si el token trae device_id
+// (sólo los emitidos por /devices) el asiento debe seguir activo. Devuelve null
+// si todo está en orden. Los tokens de escritorio no traen el claim y no consultan
+// la BD, así que ningún cliente en campo cambia de comportamiento.
+static async Task<IResult?> AsientoRevocadoAsync(
+    ServicioLicencias svc, Guid licenciaId, Guid? dispositivoId, CancellationToken ct)
+{
+    if (dispositivoId is not { } id) return null;
+    if (await svc.AsientoVigenteAsync(licenciaId, id, ct)) return null;
+    // 403 "de re-vinculación": la licencia está bien; es ESTE equipo el que perdió
+    // su asiento. Camino de usuario distinto al de sin_flag_cloud_sync.
+    return Results.Json(
+        new ErrorResponse("El dispositivo fue revocado para esta licencia.",
+            CodigosError.AsientoRevocado), statusCode: 403);
 }
 
 // ======================================================================
@@ -203,19 +235,48 @@ app.MapPost("/validate", async (HttpContext ctx, ValidarRequest req, ServicioLic
     return DesdeResultado(r);
 }).RequireRateLimiting("activacion");
 
-// --- POST /sync/push : sube el outbox del cliente (auth por token Cloud) ---
-app.MapPost("/sync/push", async (HttpContext ctx, SyncPushRequest req, ServicioSync svc, VerificadorToken ver, CancellationToken ct) =>
+// --- POST /devices : vincula un dispositivo SECUNDARIO (móvil) como asiento ---
+//     No toca HwidActual ni consume traslados: la PC del cliente sigue vinculada.
+//     Mismo rate limiting que /activate (anti fuerza bruta de claves).
+app.MapPost("/devices", async (HttpContext ctx, VincularDispositivoRequest req, ServicioLicencias svc, CancellationToken ct) =>
 {
-    if (!AutenticarSync(ctx, ver, out var licenciaId, out var error)) return error!;
+    var r = await svc.VincularDispositivoAsync(req, Ip(ctx), ct);
+    return r.Ok ? Results.Created($"/devices/{r.Valor!.DeviceId}", r.Valor) : DesdeResultado(r);
+}).RequireRateLimiting("activacion");
+
+// --- DELETE /devices/{id} : revoca un asiento ---
+//     Autoriza un admin (API key o sesión del panel) O el dueño de la licencia
+//     presentando su clave en la cabecera X-License-Key (no en la query: las URLs
+//     terminan en logs y proxies).
+app.MapDelete("/devices/{id:guid}", async (HttpContext ctx, Guid id, ServicioLicencias svc, ServicioAuthAdmin auth, CancellationToken ct) =>
+{
+    var esAdmin = await EsAdminAsync(ctx, auth);
+    var clave = ctx.Request.Headers["X-License-Key"].ToString();
+    var r = await svc.RevocarDispositivoAsync(id, clave, esAdmin, Ip(ctx), ct);
+    return DesdeResultado(r);
+}).RequireRateLimiting("activacion");
+
+// --- POST /sync/push : sube el outbox del cliente (auth por token Cloud) ---
+app.MapPost("/sync/push", async (HttpContext ctx, SyncPushRequest req, ServicioSync svc,
+    ServicioLicencias lic, VerificadorToken ver, CancellationToken ct) =>
+{
+    if (!AutenticarSync(ctx, ver, out var licenciaId, out var dispositivoId, out _, out var error)) return error!;
+    if (await AsientoRevocadoAsync(lic, licenciaId, dispositivoId, ct) is { } revocado) return revocado;
     var resp = await svc.ProcesarPushAsync(licenciaId, req, ct);
     return Results.Ok(resp);
 });
 
 // --- GET /sync/pull : descarga cambios remotos desde el cursor (auth por token Cloud) ---
-app.MapGet("/sync/pull", async (HttpContext ctx, ServicioSync svc, VerificadorToken ver, string? cursor, CancellationToken ct) =>
+//     `origen` = origen_caja_id del dispositivo que consulta: sus propios eventos
+//     no se le devuelven (filtro de eco). Si se omite, cae al claim device_prefix
+//     del token; si tampoco está, no se filtra (compatibilidad con clientes viejos).
+app.MapGet("/sync/pull", async (HttpContext ctx, ServicioSync svc, ServicioLicencias lic,
+    VerificadorToken ver, string? cursor, string? origen, CancellationToken ct) =>
 {
-    if (!AutenticarSync(ctx, ver, out var licenciaId, out var error)) return error!;
-    var resp = await svc.ObtenerCambiosAsync(licenciaId, cursor, ct);
+    if (!AutenticarSync(ctx, ver, out var licenciaId, out var dispositivoId, out var prefijoToken, out var error)) return error!;
+    if (await AsientoRevocadoAsync(lic, licenciaId, dispositivoId, ct) is { } revocado) return revocado;
+    var propio = string.IsNullOrWhiteSpace(origen) ? prefijoToken : origen;
+    var resp = await svc.ObtenerCambiosAsync(licenciaId, cursor, propio, ct);
     return Results.Ok(resp);
 });
 
@@ -233,15 +294,22 @@ app.MapPost("/webhooks/payment", async (HttpContext ctx, ServicioLicencias svc, 
     {
         var firma = ctx.Request.Headers["X-PagoYa-Signature"].ToString();
         if (!VerificadorHmac.Verificar(secreto, cuerpo, firma))
-            return Results.Json(new ErrorResponse("Firma HMAC del webhook inválida."), statusCode: 401);
+            return Results.Json(
+                new ErrorResponse("Firma HMAC del webhook inválida.", CodigosError.FirmaWebhookInvalida),
+                statusCode: 401);
     }
 
     WebhookPagoRequest? req;
     try { req = JsonSerializer.Deserialize<WebhookPagoRequest>(cuerpo, jsonOpts); }
-    catch (JsonException) { return Results.Json(new ErrorResponse("JSON inválido."), statusCode: 400); }
+    catch (JsonException)
+    {
+        return Results.Json(new ErrorResponse("JSON inválido.", CodigosError.PayloadInvalido), statusCode: 400);
+    }
 
     if (req is null || string.IsNullOrWhiteSpace(req.EventId) || string.IsNullOrWhiteSpace(req.LicenseKey))
-        return Results.Json(new ErrorResponse("Faltan campos requeridos (event_id, license_key)."), statusCode: 400);
+        return Results.Json(
+            new ErrorResponse("Faltan campos requeridos (event_id, license_key).", CodigosError.PayloadInvalido),
+            statusCode: 400);
 
     var r = await svc.ProcesarPagoAsync(req, cuerpo, ct);
     return DesdeResultado(r);
@@ -287,7 +355,9 @@ app.MapGet("/admin/licenses/{id:guid}", async (HttpContext ctx, Guid id, Servici
 {
     if (!await EsAdminAsync(ctx, auth)) return NoAutorizado();
     var lic = await svc.ObtenerAsync(id, ct);
-    return lic is null ? Results.NotFound(new ErrorResponse("Licencia no encontrada.")) : Results.Ok(lic);
+    return lic is null
+        ? Results.NotFound(new ErrorResponse("Licencia no encontrada.", CodigosError.LicenciaNoEncontrada))
+        : Results.Ok(lic);
 });
 
 app.MapPost("/admin/licenses/{id:guid}/suspend", async (HttpContext ctx, Guid id, ServicioAdmin svc, ServicioAuthAdmin auth, CancellationToken ct) =>

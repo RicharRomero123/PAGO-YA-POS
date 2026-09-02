@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  PagoYa Móvil — Info.plist.
+
+  ESCRITO A MANO por `flutter-hardware` ANTES de correr `flutter create`.
+  Tras `flutter create --platforms=android,ios .` Flutter generará el suyo.
+  Hay que FUSIONAR: de este archivo importan las claves NS*UsageDescription,
+  LSApplicationQueriesSchemes e ITSAppUsesNonExemptEncryption. El resto es el
+  template estándar y puede venir del generado.
+
+  Recordatorio de plataforma: en iOS NO se puede usar Bluetooth clásico (SPP)
+  desde una app de terceros sin certificación MFi de Apple. Las impresoras
+  térmicas baratas del mercado peruano son SPP, así que en iPhone solo
+  funcionarán las impresoras BLE. Ver pagoya_hardware/lib/pagoya_hardware.dart.
+-->
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>es</string>
+    <key>CFBundleDisplayName</key>
+    <string>PagoYa</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>pagoya_movil</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$(FLUTTER_BUILD_NAME)</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleVersion</key>
+    <string>$(FLUTTER_BUILD_NUMBER)</string>
+
+    <!-- Español de Perú como idioma principal. -->
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>es</string>
+    </array>
+
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    <key>UILaunchStoryboardName</key>
+    <string>LaunchScreen</string>
+    <key>UIMainStoryboardFile</key>
+    <string>Main</string>
+
+    <!--
+      El POS se usa en vertical (una mano, mostrador). Se permite también
+      horizontal en iPad para el modo catálogo.
+    -->
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+    </array>
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+
+    <key>CADisableMinimumFrameDurationOnPhone</key>
+    <true/>
+    <key>UIApplicationSupportsIndirectInputEvents</key>
+    <true/>
+
+    <!-- ================================================================
+         PERMISOS — textos mostrados por iOS en el diálogo del sistema.
+
+         Apple RECHAZA los textos genéricos ("esta app usa la cámara"). La
+         guía 5.1.1 exige explicar qué se hace con el dato y por qué el
+         usuario se beneficia. Los de abajo están escritos para eso:
+         concretos, en primera persona del producto y sin jerga.
+
+         Si se editan, mantener: (1) qué se accede, (2) para qué en términos
+         del negocio del usuario, (3) qué NO se hace con el dato.
+         ================================================================ -->
+
+    <key>NSCameraUsageDescription</key>
+    <string>PagoYa usa la cámara como lector de código de barras: apuntas al producto y se agrega solo a la venta o al inventario, sin escribir el código a mano. Las imágenes se procesan en el momento dentro del teléfono; no se guardan ni se envían a ningún servidor.</string>
+
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>PagoYa se conecta por Bluetooth a tu impresora térmica para imprimir el ticket de cada venta y abrir el cajón de dinero. Solo se usa para hablar con la impresora que tú elijas; no se rastrea tu ubicación ni se recoge información de otros dispositivos cercanos.</string>
+
+    <!-- iOS 12 y anteriores usaban esta clave; se deja por compatibilidad. -->
+    <key>NSBluetoothPeripheralUsageDescription</key>
+    <string>PagoYa se conecta por Bluetooth a tu impresora térmica para imprimir el ticket de cada venta.</string>
+
+    <!--
+      Guardar el comprobante en Fotos antes de mandarlo por WhatsApp. Se pide
+      solo si el usuario toca "Guardar imagen"; nunca al arrancar.
+    -->
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>PagoYa guarda en tus Fotos la imagen del comprobante cuando tocas "Guardar", para que puedas reenviarla después a tu cliente.</string>
+
+    <!--
+      Sin esto, `canLaunchUrl('whatsapp://...')` devuelve siempre false en iOS y
+      el botón "Enviar por WhatsApp" nunca aparecería, aunque WhatsApp esté
+      instalado. Es el equivalente del bloque <queries> de Android.
+    -->
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>whatsapp</string>
+        <string>https</string>
+        <string>mailto</string>
+        <string>tel</string>
+    </array>
+
+    <!--
+      Deep link del flujo de activación de licencia (go_router).
+      Dueño del enrutado: flutter-licencia.
+    -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+            <key>CFBundleURLName</key>
+            <string>pe.pagoya.movil</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>pagoya</string>
+            </array>
+        </dict>
+    </array>
+
+    <!--
+      PagoYa solo usa HTTPS estándar y el cifrado del sistema (Keychain), que
+      está exento. Declararlo evita tener que rellenar el cuestionario de
+      cumplimiento de exportación en CADA subida a App Store Connect.
+    -->
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+</dict>
+</plist>

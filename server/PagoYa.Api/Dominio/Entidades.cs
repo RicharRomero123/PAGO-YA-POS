@@ -30,6 +30,25 @@ public enum EstadoLicencia
     Revocada = 4
 }
 
+/// <summary>
+/// Rol de un dispositivo dentro de la licencia (modelo de asientos/seats).
+///
+/// <para><b>Principal</b>: el equipo vinculado en <c>Licencia.HwidActual</c> vía
+/// <c>POST /activate</c>. Hay como máximo uno activo y su cambio consume traslados.</para>
+///
+/// <para><b>Secundario</b>: asiento adicional vinculado vía <c>POST /devices</c>
+/// (típicamente el móvil del mozo). NO toca <c>HwidActual</c> ni consume traslados;
+/// solo ocupa un cupo de <c>Licencia.MaxDispositivos</c>.</para>
+///
+/// Compatibilidad: el valor 0 = Principal, así que las filas de <c>Devices</c>
+/// creadas antes de los seats se leen como principales sin migración de datos.
+/// </summary>
+public enum TipoDispositivo
+{
+    Principal = 0,
+    Secundario = 1
+}
+
 /// <summary>Estado de una suscripción de pago recurrente (Cloud/Facturador).</summary>
 public enum EstadoSuscripcion
 {
@@ -93,6 +112,17 @@ public sealed class Licencia
     /// <summary>Traslados de HWID ya consumidos.</summary>
     public int TrasladosUsados { get; set; }
 
+    /// <summary>
+    /// Máximo de dispositivos ACTIVOS simultáneos: el principal (HWID de la PC)
+    /// MÁS los asientos secundarios (móviles). Default por tier:
+    /// Base 1, Cloud 3, Facturador 5.
+    ///
+    /// <b>0 = "sin definir"</b> y se resuelve con el default del tier
+    /// (<see cref="MaxDispositivosEfectivo"/>). Esto mantiene la compatibilidad
+    /// con licencias emitidas antes del modelo de seats, cuyas filas traen 0.
+    /// </summary>
+    public int MaxDispositivos { get; set; }
+
     public DateTime CreadoUtc { get; set; } = DateTime.UtcNow;
     public DateTime ActualizadoUtc { get; set; } = DateTime.UtcNow;
 
@@ -100,26 +130,66 @@ public sealed class Licencia
     public List<Suscripcion> Suscripciones { get; set; } = new();
     public List<LogActivacion> LogsActivacion { get; set; } = new();
 
+    /// <summary>Cupo de dispositivos realmente aplicable (resuelve el 0 legacy).</summary>
+    public int MaxDispositivosEfectivo =>
+        MaxDispositivos > 0 ? MaxDispositivos : MaxDispositivosPorTier(Tier);
+
+    /// <summary>Cupo de dispositivos por defecto de cada tier comercial.</summary>
+    public static int MaxDispositivosPorTier(Tier tier) => tier switch
+    {
+        Tier.Cloud => 3,
+        Tier.Facturador => 5,
+        _ => 1
+    };
+
     public string[] Features =>
         string.IsNullOrWhiteSpace(FeaturesCsv)
             ? Array.Empty<string>()
             : FeaturesCsv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 }
 
-/// <summary>Equipo (HWID) vinculado a una licencia a lo largo del tiempo.</summary>
+/// <summary>
+/// Equipo (HWID) vinculado a una licencia a lo largo del tiempo. Desde el modelo
+/// de asientos también representa los dispositivos <b>secundarios</b> (móviles)
+/// vinculados con <c>POST /devices</c>, distinguidos por <see cref="Tipo"/>.
+/// </summary>
 public sealed class Dispositivo
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid LicenciaId { get; set; }
     public Licencia? Licencia { get; set; }
 
+    /// <summary>
+    /// Huella del equipo. En la PC es el HWID (CPU + BaseBoard); en el móvil es el
+    /// id estable del dispositivo (Android ID / identifierForVendor).
+    /// </summary>
     public string Hwid { get; set; } = string.Empty;
 
-    /// <summary>True si es el HWID vinculado actualmente (los previos quedan como histórico).</summary>
+    /// <summary>Principal (HWID de la licencia) o Secundario (asiento móvil).</summary>
+    public TipoDispositivo Tipo { get; set; } = TipoDispositivo.Principal;
+
+    /// <summary>Nombre legible para el panel admin ("Celular de Juan", "Caja 2").</summary>
+    public string? Nombre { get; set; }
+
+    /// <summary>Plataforma informativa: windows | android | ios.</summary>
+    public string? Plataforma { get; set; }
+
+    /// <summary>
+    /// Prefijo de correlativos y de <c>origen_caja_id</c> asignado por el SERVER:
+    /// <c>C01</c>, <c>C02</c> (equipos de escritorio), <c>M01</c>, <c>M02</c> (móviles).
+    /// Es único dentro de la licencia y no se reutiliza mientras el asiento esté activo.
+    /// Vacío en las filas anteriores al modelo de seats (el cliente conserva el suyo).
+    /// </summary>
+    public string Prefijo { get; set; } = string.Empty;
+
+    /// <summary>True si el asiento está vigente (los revocados quedan como histórico).</summary>
     public bool Activo { get; set; } = true;
 
     public DateTime VinculadoUtc { get; set; } = DateTime.UtcNow;
     public DateTime? DesvinculadoUtc { get; set; }
+
+    /// <summary>Último contacto conocido (activación/validación). Informativo.</summary>
+    public DateTime? UltimoVistoUtc { get; set; }
 }
 
 /// <summary>Suscripción de pago recurrente (Cloud/Facturador).</summary>
@@ -205,7 +275,10 @@ public sealed class LogActivacion
     public Guid LicenciaId { get; set; }
     public Licencia? Licencia { get; set; }
 
-    /// <summary>activacion | traslado | validacion | rechazo | suspension | reactivacion</summary>
+    /// <summary>
+    /// emision | activacion | traslado | validacion | rechazo | pago |
+    /// suspension | reactivacion | vinculo_dispositivo | revocacion_dispositivo
+    /// </summary>
     public string Accion { get; set; } = string.Empty;
 
     public string? Hwid { get; set; }

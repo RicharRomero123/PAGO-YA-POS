@@ -1,0 +1,115 @@
+# PagoYa Móvil — Podfile de iOS.
+#
+# ESCRITO A MANO por `flutter-hardware` ANTES de correr `flutter create`.
+# Tras `flutter create --platforms=android,ios .` Flutter genera el suyo. Al
+# FUSIONAR, lo que hay que conservar de este archivo es:
+#   1. la línea `platform :ios, '13.0'` (descomentada),
+#   2. el bloque de GCC_PREPROCESSOR_DEFINITIONS de permission_handler dentro
+#      de `post_install`.
+# El resto es idéntico al template de Flutter.
+
+# ------------------------------------------------------------------
+# iOS 13.0 mínimo.
+#
+# Lo marca `flutter_blue_plus`, que necesita las APIs de CoreBluetooth de
+# iOS 13. `mobile_scanner` y `share_plus` piden iOS 12, así que 13 es el techo
+# de los mínimos. Cubre iPhone 6s (2015) en adelante.
+#
+# Recordatorio: en iOS solo funcionan impresoras Bluetooth LE. El SPP clásico
+# —que es lo que usan casi todas las térmicas baratas peruanas— requiere el
+# programa MFi de Apple y no está disponible para apps de terceros.
+# ------------------------------------------------------------------
+platform :ios, '13.0'
+
+# CocoaPods analytics envía estadísticas en cada build; ralentiza el CI.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(
+    File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__
+  )
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. Corre `flutter pub get` primero."
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT no encontrado en Generated.xcconfig. Corre `flutter pub get`."
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+
+      # ----------------------------------------------------------------
+      # permission_handler: compilación selectiva de permisos.
+      #
+      # Por defecto el plugin compila TODOS los permisos que soporta
+      # (ubicación, micrófono, contactos, salud...). App Review rechaza la app
+      # si el binario referencia APIs cuyo NS*UsageDescription no está en el
+      # Info.plist — aunque el código nunca las llame.
+      #
+      # Aquí se activan SOLO los tres que PagoYa usa de verdad. Si mañana se
+      # añade un permiso, hay que activarlo aquí Y poner su texto en
+      # Info.plist, o el diálogo del sistema no aparece nunca.
+      # ----------------------------------------------------------------
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+        '$(inherited)',
+
+        # Cámara: escáner de códigos de barras.
+        'PERMISSION_CAMERA=1',
+
+        # Fotos (solo añadir): guardar el comprobante antes de mandarlo.
+        'PERMISSION_PHOTOS_ADD_ONLY=1',
+
+        # Notificaciones: avisos de sincronización.
+        'PERMISSION_NOTIFICATIONS=1',
+
+        # Todo lo demás, explícitamente APAGADO.
+        'PERMISSION_EVENTS=0',
+        'PERMISSION_EVENTS_FULL_ACCESS=0',
+        'PERMISSION_REMINDERS=0',
+        'PERMISSION_CONTACTS=0',
+        'PERMISSION_MICROPHONE=0',
+        'PERMISSION_SPEECH_RECOGNIZER=0',
+        'PERMISSION_PHOTOS=0',
+        'PERMISSION_LOCATION=0',
+        'PERMISSION_MEDIA_LIBRARY=0',
+        'PERMISSION_SENSORS=0',
+        'PERMISSION_BLUETOOTH=0',
+        'PERMISSION_APP_TRACKING_TRANSPARENCY=0',
+        'PERMISSION_CRITICAL_ALERTS=0',
+        'PERMISSION_ASSISTANT=0',
+      ]
+      # Nota sobre PERMISSION_BLUETOOTH=0: en iOS no se solicita el permiso de
+      # Bluetooth por API. CoreBluetooth muestra el diálogo del sistema solo, la
+      # primera vez que se usa, con el texto de NSBluetoothAlwaysUsageDescription.
+    end
+  end
+end

@@ -288,6 +288,10 @@ public partial class ConfiguracionViewModel : ObservableObject
             return;
         }
 
+        // Lo guardado antes: esta pantalla no edita TODOS los campos, así que hay
+        // que arrastrar los que no toca o se pierden al sobrescribir el archivo.
+        var previo = _store.Leer();
+
         var cfg = new ConfiguracionNegocio
         {
             NombreNegocio = NombreNegocio.Trim(),
@@ -302,7 +306,14 @@ public partial class ConfiguracionViewModel : ObservableObject
             LogoRuta = LogoRuta,
             SyncUrlBase = string.IsNullOrWhiteSpace(SyncUrlBase) ? null : SyncUrlBase.Trim(),
             // Preservamos la preferencia de modo táctil (se activa desde la pantalla de cobro).
-            ModoTactil = _store.Leer()?.ModoTactil ?? false
+            ModoTactil = previo?.ModoTactil ?? false,
+            // Categorías creadas desde Inventario: esta pantalla no las edita.
+            CategoriasPersonalizadas = previo?.CategoriasPersonalizadas ?? new List<string>(),
+            // Identidad de sync asignada por el servidor al vincular el equipo.
+            // NUNCA se regenera desde aquí: si se perdiera, el `?origen=` del pull
+            // dejaría de coincidir con el `origen_caja_id` que ya se subió y el
+            // filtro de eco del backend se rompería (server/README.md §7.1).
+            OrigenCajaId = previo?.OrigenCajaId ?? ""
         };
 
         try

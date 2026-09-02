@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  PagoYa Móvil — manifiesto de la app.
+
+  ESCRITO A MANO por `flutter-hardware` ANTES de correr `flutter create`.
+  Cuando el usuario corra `flutter create --platforms=android,ios .`, Flutter
+  generará su propio AndroidManifest.xml. Hay que FUSIONAR: conservar de este
+  archivo el bloque de <uses-permission>, <uses-feature> y <queries>, y los
+  atributos android:allowBackup / android:label del <application>. El bloque
+  <activity> de abajo es el estándar de Flutter y puede sustituirse por el
+  generado sin perder nada.
+
+  Ver el reporte de flutter-hardware para el detalle de la fusión.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ============================================================
+         RED — sync con la nube y validación de licencia.
+         ============================================================ -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- ============================================================
+         BLUETOOTH — impresora térmica.
+
+         Aquí es donde se origina el 90 % de los "no encuentra mi impresora".
+         Android partió el modelo de permisos en dos épocas:
+
+         · Android 11 (API 30) y anteriores: BLUETOOTH y BLUETOOTH_ADMIN son
+           permisos de INSTALACIÓN (no se piden en runtime), pero escanear BLE
+           exige ubicación fina. Por eso van ACCESS_*_LOCATION acotados con
+           maxSdkVersion="30": en Android 12+ no los queremos ni declarados,
+           porque pedir ubicación en un POS espanta al usuario y Play pregunta.
+
+         · Android 12 (API 31) y superiores: BLUETOOTH_SCAN y BLUETOOTH_CONNECT
+           son permisos de RUNTIME. `neverForLocation` es la declaración de que
+           no derivamos ubicación del escaneo, y es lo que nos exime de pedir
+           permiso de ubicación. Sin ese flag, Android obliga a la ubicación.
+
+         La lógica de qué pedir según versión vive en
+         packages/pagoya_hardware/lib/src/permisos/permisos_hardware.dart
+         ============================================================ -->
+    <uses-permission android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"
+        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"
+        android:maxSdkVersion="30" />
+
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="s" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"
+        tools:targetApi="s" />
+
+    <!-- ============================================================
+         CÁMARA — escáner de códigos de barras (mobile_scanner).
+         Permiso de runtime en todas las versiones.
+         ============================================================ -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Feedback háptico al leer un código. Permiso normal, no se pide. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!--
+      Android 13+ (API 33): notificaciones en runtime. Se declara porque
+      flutter-sync puede avisar del resultado de una sincronización. Se pide
+      SOLO cuando se vaya a usar, nunca al arrancar: pedir permisos "por si
+      acaso" hace que el usuario deniegue todo.
+    -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- ============================================================
+         HARDWARE OPCIONAL
+
+         Todos con required="false" A PROPÓSITO. Si se marcaran obligatorios,
+         Google Play ocultaría la app a los dispositivos que no los tengan
+         (tablets sin cámara trasera, equipos sin BLE). PagoYa funciona sin
+         impresora y sin cámara: se escribe el código a mano y se manda el
+         ticket por WhatsApp.
+         ============================================================ -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+
+    <application
+        android:name="${applicationName}"
+        android:label="PagoYa"
+        android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="true"
+        tools:targetApi="tiramisu"
+        android:allowBackup="false">
+        <!--
+          android:allowBackup="false" es DELIBERADO y toca el licenciamiento.
+
+          Con backup activo, Android puede restaurar los datos de la app —
+          incluido el UUID del dispositivo de `IdentidadDispositivoSegura` — en
+          un teléfono DISTINTO. El resultado sería el mismo id de dispositivo en
+          dos equipos: un seat de licencia clonado. Ver el razonamiento completo
+          en packages/pagoya_hardware/lib/src/identidad/contrato_identidad.dart
+
+          El equivalente en iOS es `KeychainAccessibility.first_unlock_this_device`.
+
+          Consecuencia aceptada: al cambiar de teléfono el cliente re-activa su
+          licencia. Es el flujo que ya existe hoy (se pide por WhatsApp) y es
+          preferible a repartir activaciones gratis por backup de Google.
+        -->
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme" />
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!--
+              Deep link del flujo de activación de licencia (go_router).
+              El cliente compra por WhatsApp, recibe un enlace y al tocarlo la
+              app abre directo la pantalla de activación con el token.
+              Dueño del enrutado: flutter-licencia.
+            -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="pagoya" android:host="activar" />
+            </intent-filter>
+        </activity>
+
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+
+        <!--
+          ML Kit descarga el modelo de códigos de barras la primera vez que se
+          usa. Con esto se instala junto con la app: el escáner funciona a la
+          primera y OFFLINE, que es el escenario real de una bodega sin WiFi.
+          Sin esta línea, el primer escaneo de un cliente sin datos falla.
+        -->
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="barcode" />
+    </application>
+
+    <!--
+      Android 11 (API 30) endureció la visibilidad de paquetes: sin declarar
+      lo que se consulta, `canLaunchUrl` devuelve false aunque WhatsApp esté
+      instalado, y el botón "Enviar por WhatsApp" no aparecería nunca.
+    -->
+    <queries>
+        <package android:name="com.whatsapp" />
+        <package android:name="com.whatsapp.w4b" /><!-- WhatsApp Business -->
+
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="*/*" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
+</manifest>

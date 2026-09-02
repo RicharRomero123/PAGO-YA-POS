@@ -128,7 +128,16 @@ public static class CompositionRoot
             // simulado: respaldo/consolidación local, sigue operando offline.
             if (!string.IsNullOrWhiteSpace(cfg.SyncUrlBase) && !string.IsNullOrWhiteSpace(token))
             {
-                var opciones = new OpcionesSync { UrlBase = cfg.SyncUrlBase, TokenLicencia = token };
+                // OrigenCajaId sale de la config persistida — la MISMA fuente que
+                // estampa `origen_caja_id` en los eventos que se suben. Tiene que
+                // ser el mismo valor en ambos lados o el filtro de eco del backend
+                // no filtra nada (server/README.md §7.1).
+                var opciones = new OpcionesSync
+                {
+                    UrlBase = cfg.SyncUrlBase,
+                    TokenLicencia = token,
+                    OrigenCajaId = cfg.OrigenCajaId
+                };
                 return new CloudSyncService(outbox, new HttpSyncTransport(new HttpClient(), opciones), opciones);
             }
 

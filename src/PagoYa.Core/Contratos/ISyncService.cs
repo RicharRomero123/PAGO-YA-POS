@@ -40,6 +40,18 @@ public sealed class ResultadoSync
     /// <summary>Mensaje legible (para soporte).</summary>
     public string? Mensaje { get; init; }
 
+    /// <summary>
+    /// Código de error machine-readable devuelto por el backend, cuando lo hubo
+    /// (catálogo estable en <c>server/README.md §10</c>; p. ej.
+    /// <c>sin_flag_cloud_sync</c> → upsell, <c>asiento_revocado</c> → volver a
+    /// vincular el equipo). Null si el ciclo fue bien, si el fallo fue de red o
+    /// si el backend es anterior al catálogo.
+    ///
+    /// La UI debe ramificar por este campo, <b>nunca</b> por el texto de
+    /// <see cref="Mensaje"/>, que se reescribe y algún día se traduce.
+    /// </summary>
+    public string? CodigoError { get; init; }
+
     /// <summary>Resultado que indica que la sync no está habilitada por licencia.</summary>
     public static ResultadoSync NoHabilitado() => new()
     {

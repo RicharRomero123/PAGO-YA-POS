@@ -30,6 +30,7 @@ public sealed class LicenciasDbContext : DbContext
             e.Property(x => x.ClaveLicencia).IsRequired();
             e.Property(x => x.FeaturesCsv).HasDefaultValue(string.Empty);
             e.Ignore(x => x.Features);
+            e.Ignore(x => x.MaxDispositivosEfectivo);
         });
 
         b.Entity<Dispositivo>(e =>
@@ -37,6 +38,9 @@ public sealed class LicenciasDbContext : DbContext
             e.ToTable("Devices");
             e.HasKey(x => x.Id);
             e.HasIndex(x => new { x.LicenciaId, x.Hwid });
+            // Cupo de asientos y asignación de prefijos consultan por (tenant, tipo, activo).
+            e.HasIndex(x => new { x.LicenciaId, x.Activo });
+            e.Property(x => x.Prefijo).HasDefaultValue(string.Empty);
             e.HasOne(x => x.Licencia)
                 .WithMany(l => l.Dispositivos)
                 .HasForeignKey(x => x.LicenciaId)

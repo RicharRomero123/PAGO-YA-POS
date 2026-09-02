@@ -1,0 +1,80 @@
+name: pagoya_hardware
+description: >-
+  Implementaciones de plataforma (Android/iOS) de los puertos que declara
+  pagoya_core en `lib/dispositivo/contratos.dart`: impresora térmica Bluetooth
+  ESC/POS, escáner de códigos por cámara, identidad del dispositivo,
+  almacenamiento seguro y compartir archivos.
+version: 0.1.0
+publish_to: none
+
+# Este paquete es la ÚNICA frontera con el hardware. Si un plugin nuevo hace
+# falta, se pide a mobile-lead: nadie más toca dependencias (§3).
+
+environment:
+  sdk: ^3.5.0
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  pagoya_core:
+    path: ../pagoya_core
+
+  # --- Impresión térmica (§4) ---
+  # esc_pos_utils_plus genera los BYTES ESC/POS (puro Dart);
+  # print_bluetooth_thermal los envía por SPP clásico, que es lo que hablan las
+  # térmicas baratas de Perú. BLE queda como respaldo futuro.
+  esc_pos_utils_plus: ^2.0.4
+  print_bluetooth_thermal: ^1.1.1
+  # Respaldo BLE para las térmicas modernas que solo exponen GATT, y única vía
+  # posible en iOS: el SPP clásico no está disponible para apps de terceros sin
+  # certificación MFi de Apple. Lo pidió flutter-hardware (transporte_ble.dart).
+  flutter_blue_plus: ^1.34.5
+
+  # --- Escáner de códigos de barras por cámara (§4) ---
+  mobile_scanner: ^5.2.3
+
+  # --- Identidad del dispositivo ---
+  # OJO: device_info_plus **NO** genera el id de licencia. El id es un UUID v4
+  # aleatorio persistido en flutter_secure_storage (ver `IdentidadDispositivo`
+  # en pagoya_core/lib/dispositivo/contratos.dart).
+  #
+  # Derivarlo de androidId o identifierForVendor sería un bug grave: los dos
+  # rotan solos —restauración de fábrica, cambio de firma del APK, desinstalar
+  # todas las apps del vendor— y al rotar dejan de coincidir con el `hwid` del
+  # token, desactivando al cliente en plena jornada de ventas sin que haya
+  # hecho nada.
+  #
+  # Este paquete se usa SOLO para el nombre legible del equipo
+  # (`obtenerNombreDispositivo`), que es informativo y sale en el panel admin.
+  device_info_plus: ^11.2.0
+
+  # --- Almacenamiento seguro del token y del id de dispositivo (§4) ---
+  flutter_secure_storage: ^9.2.2
+
+  # --- Compartir PDF/ticket por WhatsApp (§4) ---
+  share_plus: ^10.1.4
+  # El comprobante se manda como PDF o como imagen; `pdf` lo genera y
+  # `url_launcher` abre el chat directo de WhatsApp (wa.me) cuando el cliente ya
+  # dio su número, que ahorra dos toques por venta.
+  pdf: ^3.11.1
+  url_launcher: ^6.3.1
+  # Preferencias NO sensibles del hardware: última impresora emparejada, ancho
+  # de papel. El token y el id de dispositivo van en flutter_secure_storage,
+  # nunca aquí.
+  shared_preferences: ^2.3.3
+
+  # --- Permisos de cámara y Bluetooth (Android 12+ exige BLUETOOTH_CONNECT) ---
+  # Añadido por mobile-lead: sin esto el escáner y la impresora fallan en
+  # silencio en Android 13/14. Ver decisión en MOBILE-ARQUITECTURA §4.
+  permission_handler: ^11.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+# Sin sección `flutter:` a propósito: este paquete NO tiene código nativo
+# propio ni assets; solo envuelve plugins de terceros. Declarar `plugin:` aquí
+# obligaría a mantener registros nativos que no existen.

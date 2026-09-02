@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using PagoYa.Api.Contratos;
 
 namespace PagoYa.Api.Firma;
 
@@ -21,13 +22,25 @@ public sealed class VerificadorToken
     /// (eso lo decide el llamador con <see cref="ExigeFeature"/>).
     /// </summary>
     public bool TryVerificar(string? token, out PayloadToken? payload, out string? error)
+        => TryVerificar(token, out payload, out error, out _);
+
+    /// <summary>
+    /// Igual que <see cref="TryVerificar(string?, out PayloadToken?, out string?)"/>
+    /// pero devuelve además el <b>código estable</b> del fallo
+    /// (<see cref="Contratos.CodigosError"/>), para que el cliente ramifique sin
+    /// mirar el texto del mensaje. Distingue en particular
+    /// <c>token_expirado</c> (→ revalidar) de <c>token_invalido</c> (→ re-vincular).
+    /// </summary>
+    public bool TryVerificar(string? token, out PayloadToken? payload, out string? error, out string? codigo)
     {
         payload = null;
         error = null;
+        codigo = null;
 
         if (string.IsNullOrWhiteSpace(token))
         {
             error = "Token ausente.";
+            codigo = CodigosError.TokenAusente;
             return false;
         }
 
@@ -35,6 +48,7 @@ public sealed class VerificadorToken
         if (partes.Length != 2)
         {
             error = "Formato de token inválido.";
+            codigo = CodigosError.TokenInvalido;
             return false;
         }
 
@@ -47,6 +61,7 @@ public sealed class VerificadorToken
         catch (FormatException)
         {
             error = "Codificación base64url inválida.";
+            codigo = CodigosError.TokenInvalido;
             return false;
         }
 
@@ -56,12 +71,14 @@ public sealed class VerificadorToken
             if (!rsa.VerifyData(payloadBytes, firmaBytes, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1))
             {
                 error = "Firma del token no válida.";
+                codigo = CodigosError.TokenInvalido;
                 return false;
             }
         }
         catch (Exception ex) when (ex is CryptographicException or ArgumentException or InvalidOperationException)
         {
             error = $"No se pudo verificar la firma: {ex.Message}";
+            codigo = CodigosError.TokenInvalido;
             return false;
         }
 
@@ -72,12 +89,14 @@ public sealed class VerificadorToken
         catch (JsonException)
         {
             error = "Payload del token no es JSON válido.";
+            codigo = CodigosError.TokenInvalido;
             return false;
         }
 
         if (payload is null)
         {
             error = "Payload del token vacío.";
+            codigo = CodigosError.TokenInvalido;
             return false;
         }
 
@@ -85,6 +104,7 @@ public sealed class VerificadorToken
         if (payload.Exp != 0 && DateTimeOffset.FromUnixTimeSeconds(payload.Exp) < DateTimeOffset.UtcNow)
         {
             error = "El token de licencia expiró.";
+            codigo = CodigosError.TokenExpirado;
             return false;
         }
 
